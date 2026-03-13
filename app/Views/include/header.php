@@ -20,6 +20,10 @@
     <link href="<?= base_url('public/css/main.css') ?>" rel="stylesheet">
     <link href="<?= base_url('public/css/home.css') ?>" rel="stylesheet">
     <link href="<?= base_url('public/css/products.css') ?>" rel="stylesheet">
+    <link href="<?= base_url('public/css/productDetails.css') ?>" rel="stylesheet">
+    <link href="<?= base_url('public/css/cart.css') ?>" rel="stylesheet">
+    <link href="<?= base_url('public/css/checkout.css') ?>" rel="stylesheet">
+    <link href="<?= base_url('public/css/shipping.css') ?>" rel="stylesheet">
 
 
 

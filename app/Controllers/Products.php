@@ -10,4 +10,29 @@ class Products extends BaseController
 
         return view('products_view', $data);
     }
+    public function details()
+    {
+        $data['title'] = "Product Details";
+
+        return view('productDetails_view', $data);
+    }
+
+    public function cart()
+    {
+        $data['title'] = "Shopping Cart";
+
+        return view('cart_view', $data);
+    }
+    public function checkout()
+    {
+        $data['title'] = "Checkout";
+
+        return view('checkout_view', $data);
+    }
+    public function shipping()
+    {
+        $data['title'] = "Shipping";
+
+        return view('shipping_view', $data);
+    }
 }

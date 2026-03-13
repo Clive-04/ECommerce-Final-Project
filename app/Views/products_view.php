@@ -37,7 +37,7 @@
                         <h5 class="card-title">Headphone 1</h5>
                         <p class="price">₱1,299</p>
                         <div class="card-actions">
-                            <button class="btn view-btn">View Product</button>
+                            <a href="<?= base_url('product-details') ?>" class="btn view-btn">View Product</a>
                             <button class="btn cart-btn">Add to Cart</button>
                         </div>
                     </div>
