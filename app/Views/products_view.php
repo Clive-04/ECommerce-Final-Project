@@ -32,7 +32,8 @@
 
             <div class="col-lg-4 col-md-6">
                 <div class="card catalog-card">
-                    <img src="<?= base_url('img/headphone1.jpg') ?>" class="card-img-top catalog-img" alt="Headphone 1">
+                    <img src="<?= base_url('public/img/headphone1.jpg') ?>" class="card-img-top catalog-img"
+                        alt="Headphone 1">
                     <div class="card-body">
                         <h5 class="card-title">Headphone 1</h5>
                         <p class="price">₱1,299</p>

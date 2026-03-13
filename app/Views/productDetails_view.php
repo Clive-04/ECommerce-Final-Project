@@ -7,8 +7,8 @@
             <div class="row g-5 align-items-start">
                 <div class="col-lg-5">
                     <div class="product-image-panel">
-                        <div class="product-badge">Best Seller</div>
-                        <img src="<?= base_url('img/headphone1.jpg') ?>" alt="Headphone 1" class="product-main-image">
+                        <img src="<?= base_url('public/img/headphone1.jpg') ?>" alt="Headphone 1"
+                            class="product-main-image">
                     </div>
                 </div>
 

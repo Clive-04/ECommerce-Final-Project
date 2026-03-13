@@ -11,3 +11,5 @@ $routes->get('/product-details', 'Products::details');
 $routes->get('/cart', 'Products::cart');
 $routes->get('/checkout', 'Products::checkout');
 $routes->get('/shipping', 'Products::shipping');
+$routes->get('/payment', 'Products::payment');
+$routes->get('/confirmation', 'Products::confirmation');

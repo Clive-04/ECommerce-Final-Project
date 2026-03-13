@@ -106,6 +106,9 @@
 
 
     </div>
+    <div class="text-center mt-5">
+        <a href="<?= base_url('products') ?>" class="browse-products-btn">View All Products</a>
+    </div>
 
 </section>
 

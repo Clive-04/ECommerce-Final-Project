@@ -35,4 +35,16 @@ class Products extends BaseController
 
         return view('shipping_view', $data);
     }
+    public function payment()
+    {
+        $data['title'] = "Payment";
+
+        return view('payment_view', $data);
+    }
+    public function confirmation()
+    {
+        $data['title'] = "Confirmation";
+
+        return view('confirmation_view', $data);
+    }
 }
