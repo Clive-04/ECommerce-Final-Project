@@ -1,0 +1,21 @@
+body {
+  font-family: "Poppins", sans-serif;
+  margin: 0;
+  background: #f4f4f4;
+}
+
+/* NAVBAR */
+
+.search-bar {
+  width: 120px;
+  border-radius: 20px;
+}
+
+.footer {
+  background: black;
+  color: white;
+  text-align: center;
+
+  padding: 20px;
+  margin-top: 40px;
+}

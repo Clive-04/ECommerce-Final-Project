@@ -1,0 +1,68 @@
+.hero {
+  background:
+    linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+    url("../img/hero.jpg");
+
+  background-size: cover;
+  background-position: center;
+
+  height: 380px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: white;
+  text-align: center;
+}
+
+.hero-overlay h2 {
+  font-weight: 300;
+}
+
+.hero-overlay h1 {
+  font-size: 60px;
+  font-weight: 700;
+}
+
+/* TAGLINE */
+
+.tagline {
+  background: white;
+  padding: 50px 20px;
+  text-align: center;
+}
+
+.tagline h3 {
+  font-weight: 600;
+}
+
+.tagline p {
+  max-width: 650px;
+  margin: auto;
+  color: #555;
+}
+
+/* TECH BANNER */
+
+.tech-banner {
+  background:
+    linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+    url("../img/banner.jpg");
+
+  background-size: cover;
+  background-position: center;
+
+  height: 140px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: white;
+
+  font-weight: 600;
+  font-size: 26px;
+
+  text-align: center;
+}
