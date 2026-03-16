@@ -4,6 +4,15 @@ namespace App\Controllers;
 
 class Admin extends BaseController
 {
+    public function __construct()
+    {
+        if(!session()->get('logged_in') || session()->get('role') != 'admin')
+        {
+            header("Location: /login");
+            exit;
+        }
+    }
+
     public function index()
     {
         $data['title'] = "VIZIO Admin";

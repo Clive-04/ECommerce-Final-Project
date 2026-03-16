@@ -9,7 +9,16 @@
                     <p>Create your account to get started.</p>
                 </div>
 
-                <form action="#" method="post" class="auth-form-modern">
+                <?php if(session()->getFlashdata('success')): ?>
+
+<p style="color:green">
+<?= session()->getFlashdata('success') ?>
+</p>
+
+<?php endif; ?>
+
+
+                <form action="<?= site_url('register/save') ?>" method="post" class="auth-form-modern">
                     <div class="modern-row">
                         <div class="modern-group">
                             <label for="first_name">First Name</label>
