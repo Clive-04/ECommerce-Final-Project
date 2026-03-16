@@ -21,7 +21,16 @@
                     <p>Sign in to continue to your account.</p>
                 </div>
 
-                <form action="#" method="post" class="auth-form-modern">
+                <?php if(session()->getFlashdata('error')): ?>
+
+<p style="color:red">
+<?= session()->getFlashdata('error') ?>
+</p>
+
+<?php endif; ?>
+
+
+                <form action="<?= site_url('login/auth') ?>" method="post" class="auth-form-modern">
                     <div class="modern-group">
                         <label for="email">Email</label>
                         <input type="email" id="email" name="email" placeholder="Enter your email">
