@@ -18,7 +18,31 @@ class Products extends BaseController
     public function index()
     {
         $data['title'] = "Product Catalog";
-        $data['products'] = $this->productModel->findAll();
+
+        // Filter by category query param (e.g. /products?category=Headphones)
+        $category = $this->request->getGet('category');
+        $normalized = $category ? strtolower(preg_replace('/\s+/', '', $category)) : '';
+
+        // Map normalized values to the user-facing label (used for active button state)
+        $categoryLabelMap = [
+            'headphones' => 'Headphones',
+            'powerbanks' => 'Powerbanks',
+            'phonecases' => 'Phone Cases',
+            'earbuds' => 'Earbuds',
+        ];
+
+        $data['selectedCategory'] = $normalized !== '' && isset($categoryLabelMap[$normalized])
+            ? $categoryLabelMap[$normalized]
+            : '';
+
+        $query = $this->productModel;
+        if ($normalized !== '') {
+            // Compare with normalized db value (lowercase, without spaces) so "Phone Cases" matches "Phonecases".
+            // We build an expression to allow using SQL functions on the left and still bind the value safely.
+            $query = $query->where("REPLACE(LOWER(category), ' ', '') =", $normalized);
+        }
+
+        $data['products'] = $query->findAll();
 
         return view('products_view', $data);
     }
@@ -98,7 +122,8 @@ class Products extends BaseController
             return redirect()->back()->with('error', $result['message']);
         }
 
-        return redirect()->to('/cart')->with('success', $result['message']);
+        // Return to the previous page (usually product listing) rather than forcing a cart redirect.
+        return redirect()->back()->with('success', $result['message']);
     }
 
     public function buyNow()
