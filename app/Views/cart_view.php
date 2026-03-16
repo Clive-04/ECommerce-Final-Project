@@ -112,7 +112,7 @@
                         <span id="estimatedTotal">₱<?= number_format($subtotal, 2) ?></span>
                     </div>
 
-                    <a href="<?= base_url('checkout') ?>" class="checkout-btn">Checkout</a>
+                    <a href="<?= base_url('checkout?mode=cart') ?>" class="checkout-btn">Checkout</a>
                 </div>
             </aside>
         </div>
