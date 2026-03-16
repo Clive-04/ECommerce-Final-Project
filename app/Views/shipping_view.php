@@ -46,8 +46,8 @@
                 <div class="shipping-options-wrap">
                     <h3>Select Shipping Option</h3>
 
-                    <label class="shipping-option active">
-                        <input type="radio" name="shipping_method" checked>
+                    <label class="shipping-option">
+                        <input type="radio" name="shipping_method">
                         <div class="shipping-option-inner">
                             <div class="shipping-option-left">
                                 <div class="shipping-icon">📦</div>
