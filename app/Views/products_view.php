@@ -29,121 +29,27 @@
         </div>
 
         <div class="row g-4">
-
-            <div class="col-lg-4 col-md-6">
-                <div class="card catalog-card">
-                    <img src="<?= base_url('public/img/headphone1.jpg') ?>" class="card-img-top catalog-img"
-                        alt="Headphone 1">
-                    <div class="card-body">
-                        <h5 class="card-title">Headphone 1</h5>
-                        <p class="price">₱1,299</p>
-                        <div class="card-actions">
-                            <a href="<?= base_url('product-details') ?>" class="btn view-btn">View Product</a>
-                            <button class="btn cart-btn">Add to Cart</button>
+                <?php if (! empty($products) && is_array($products)): ?>
+                    <?php foreach ($products as $prod): ?>
+                        <div class="col-lg-4 col-md-6">
+                            <div class="card catalog-card">
+                                <img src="<?= base_url($prod['image'] ?: 'public/img/product1.jpg') ?>" class="card-img-top catalog-img" alt="<?= esc($prod['name']) ?>">
+                                <div class="card-body">
+                                    <h5 class="card-title"><?= esc($prod['name']) ?></h5>
+                                    <p class="price">₱<?= number_format($prod['price'], 2) ?></p>
+                                    <div class="card-actions">
+                                        <a href="<?= base_url('product-details?id=' . $prod['id']) ?>" class="btn view-btn">View Product</a>
+                                        <button class="btn cart-btn">Add to Cart</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
-            </div>
+                    <?php endforeach ?>
+                <?php else: ?>
+                    <p>No products found.</p>
+                <?php endif ?>
 
-            <div class="col-lg-4 col-md-6">
-                <div class="card catalog-card">
-                    <img src="<?= base_url('img/headphone2.jpg') ?>" class="card-img-top catalog-img" alt="Headphone 2">
-                    <div class="card-body">
-                        <h5 class="card-title">Headphone 2</h5>
-                        <p class="price">₱1,499</p>
-                        <div class="card-actions">
-                            <button class="btn view-btn">View Product</button>
-                            <button class="btn cart-btn">Add to Cart</button>
-                        </div>
-                    </div>
-                </div>
             </div>
-
-            <div class="col-lg-4 col-md-6">
-                <div class="card catalog-card">
-                    <img src="<?= base_url('img/powerbank1.jpg') ?>" class="card-img-top catalog-img" alt="Powerbank 1">
-                    <div class="card-body">
-                        <h5 class="card-title">Powerbank 1</h5>
-                        <p class="price">₱899</p>
-                        <div class="card-actions">
-                            <button class="btn view-btn">View Product</button>
-                            <button class="btn cart-btn">Add to Cart</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-4 col-md-6">
-                <div class="card catalog-card">
-                    <img src="<?= base_url('img/powerbank2.jpg') ?>" class="card-img-top catalog-img" alt="Powerbank 2">
-                    <div class="card-body">
-                        <h5 class="card-title">Powerbank 2</h5>
-                        <p class="price">₱999</p>
-                        <div class="card-actions">
-                            <button class="btn view-btn">View Product</button>
-                            <button class="btn cart-btn">Add to Cart</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-4 col-md-6">
-                <div class="card catalog-card">
-                    <img src="<?= base_url('img/case1.jpg') ?>" class="card-img-top catalog-img" alt="Phone Case 1">
-                    <div class="card-body">
-                        <h5 class="card-title">Phone Case 1</h5>
-                        <p class="price">₱399</p>
-                        <div class="card-actions">
-                            <button class="btn view-btn">View Product</button>
-                            <button class="btn cart-btn">Add to Cart</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-4 col-md-6">
-                <div class="card catalog-card">
-                    <img src="<?= base_url('img/case2.jpg') ?>" class="card-img-top catalog-img" alt="Phone Case 2">
-                    <div class="card-body">
-                        <h5 class="card-title">Phone Case 2</h5>
-                        <p class="price">₱499</p>
-                        <div class="card-actions">
-                            <button class="btn view-btn">View Product</button>
-                            <button class="btn cart-btn">Add to Cart</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-4 col-md-6">
-                <div class="card catalog-card">
-                    <img src="<?= base_url('img/earbuds1.jpg') ?>" class="card-img-top catalog-img" alt="Earbuds 1">
-                    <div class="card-body">
-                        <h5 class="card-title">Earbuds 1</h5>
-                        <p class="price">₱799</p>
-                        <div class="card-actions">
-                            <button class="btn view-btn">View Product</button>
-                            <button class="btn cart-btn">Add to Cart</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-4 col-md-6">
-                <div class="card catalog-card">
-                    <img src="<?= base_url('img/earbuds2.jpg') ?>" class="card-img-top catalog-img" alt="Earbuds 2">
-                    <div class="card-body">
-                        <h5 class="card-title">Earbuds 2</h5>
-                        <p class="price">₱999</p>
-                        <div class="card-actions">
-                            <button class="btn view-btn">View Product</button>
-                            <button class="btn cart-btn">Add to Cart</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
 </section>
 
 <?= view('include/footer') ?>

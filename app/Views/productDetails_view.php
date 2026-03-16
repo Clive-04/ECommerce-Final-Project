@@ -7,16 +7,14 @@
             <div class="row g-5 align-items-start">
                 <div class="col-lg-5">
                     <div class="product-image-panel">
-                        <img src="<?= base_url('public/img/headphone1.jpg') ?>" alt="Headphone 1"
-                            class="product-main-image">
+                        <img src="<?= base_url(isset($product['image']) ? $product['image'] : 'public/img/product1.jpg') ?>" alt="<?= isset($product['name']) ? esc($product['name']) : 'Product' ?>" class="product-main-image">
                     </div>
                 </div>
 
                 <div class="col-lg-7">
                     <div class="product-content">
                         <div class="product-title-wrap">
-                            <h1>Headphone 1</h1>
-                            <p class="product-subtitle">Premium wireless audio for everyday listening</p>
+                            <h1><?= isset($product['name']) ? esc($product['name']) : 'Product' ?></h1>
                         </div>
 
                         <div class="product-rating-row">
@@ -25,28 +23,26 @@
                         </div>
 
                         <div class="product-price-wrap">
-                            <span class="product-price">₱1,299</span>
+                            <span class="product-price">₱<?= isset($product['price']) ? number_format($product['price'], 2) : '0.00' ?></span>
                             <span class="product-price-note">Inclusive of placeholder pricing</span>
                         </div>
 
                         <div class="product-summary-box">
                             <h3>Short Description</h3>
                             <p>
-                                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer tempor erat elit,
-                                commodo tempus turpis feugiat in. Proin sagittis magna at diam volutpat scelerisque
-                                sed at justo.
+                                <?= nl2br(esc($product['short_description'] ?? $product['description'] ?? 'No short description available.')) ?>
                             </p>
                         </div>
 
                         <div class="product-meta-grid">
                             <div class="meta-card">
                                 <span class="meta-label">Category</span>
-                                <span class="meta-value">Headphones</span>
+                                <span class="meta-value"><?= isset($product['category']) ? esc($product['category']) : 'Uncategorized' ?></span>
                             </div>
 
                             <div class="meta-card">
                                 <span class="meta-label">Availability</span>
-                                <span class="meta-value in-stock">In Stock</span>
+                                <span class="meta-value <?= (isset($product['stock']) && $product['stock'] > 0) ? 'in-stock' : 'out-stock' ?>"><?php if (isset($product['stock'])) { echo ($product['stock'] > 0) ? 'In Stock' : 'Out of Stock'; } else { echo 'N/A'; } ?></span>
                             </div>
                         </div>
 
@@ -74,9 +70,7 @@
                     <h2>Product Specifications</h2>
                 </div>
                 <p>
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer tempor erat elit, commodo tempus
-                    turpis feugiat in. Proin sagittis magna at diam volutpat scelerisque sed at justo. Nunc lacinia
-                    orci non neque interdum, non placerat purus posuere.
+                    <?= nl2br(esc($product['specifications'] ?? 'No specifications available.')) ?>
                 </p>
             </div>
 
@@ -85,9 +79,7 @@
                     <h2>Product Description</h2>
                 </div>
                 <p>
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer tempor erat elit, commodo tempus
-                    turpis feugiat in. Proin sagittis magna at diam volutpat scelerisque sed at justo. Pellentesque
-                    habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
+                    <?= nl2br(esc($product['description'] ?? 'No product description available.')) ?>
                 </p>
             </div>
         </div>
