@@ -28,10 +28,11 @@
     <link href="<?= base_url('public/css/shipping.css') ?>" rel="stylesheet">
     <link href="<?= base_url('public/css/payment.css') ?>" rel="stylesheet">
     <link href="<?= base_url('public/css/confirmation.css') ?>" rel="stylesheet">
-
-
+    <link href="<?= base_url('public/css/login.css') ?>" rel="stylesheet">
+    <link href="<?= base_url('public/css/admin.css') ?>" rel="stylesheet">
 
 
 </head>
-
 <body>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

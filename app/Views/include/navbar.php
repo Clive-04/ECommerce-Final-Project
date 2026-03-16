@@ -31,6 +31,8 @@
                     </button>
                     <input class="form-control search-bar" type="text" placeholder="Search">
                 </div>
+
+                <a href="<?= base_url('/login') ?>" class="login-btn">Login</a>
             </div>
         </div>
     </div>

@@ -13,3 +13,9 @@ $routes->get('/checkout', 'Products::checkout');
 $routes->get('/shipping', 'Products::shipping');
 $routes->get('/payment', 'Products::payment');
 $routes->get('/confirmation', 'Products::confirmation');
+$routes->get('/login', 'Auth::login');
+$routes->get('/register', 'Auth::register');
+$routes->get('/admin', 'Admin::index');
+$routes->get('/admin/products', 'Admin::products');
+$routes->get('/admin/orders', 'Admin::orders');
+
