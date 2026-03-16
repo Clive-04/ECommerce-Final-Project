@@ -44,8 +44,8 @@
                 </div>
 
                 <div class="payment-methods">
-                    <label class="payment-option active">
-                        <input type="radio" name="payment_method" checked>
+                    <label class="payment-option">
+                        <input type="radio" name="payment_method">
                         <div class="payment-option-inner">
                             <div class="payment-option-header">
                                 <span class="payment-option-title">Credit / Debit Card</span>
