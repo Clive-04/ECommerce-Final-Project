@@ -13,6 +13,18 @@
 
                 <div class="col-lg-7">
                     <div class="product-content">
+                        <?php if (session()->getFlashdata('success')): ?>
+                            <div class="alert success-alert">
+                                <?= esc(session()->getFlashdata('success')) ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <?php if (session()->getFlashdata('error')): ?>
+                            <div class="alert error-alert">
+                                <?= esc(session()->getFlashdata('error')) ?>
+                            </div>
+                        <?php endif; ?>
+
                         <div class="product-title-wrap">
                             <h1><?= isset($product['name']) ? esc($product['name']) : 'Product' ?></h1>
                         </div>
@@ -48,17 +60,59 @@
 
                         <div class="quantity-row">
                             <span class="qty-label">Quantity</span>
-                            <div class="qty-box">
-                                <button type="button" class="qty-btn">−</button>
-                                <span class="qty-value">1</span>
-                                <button type="button" class="qty-btn">+</button>
+                            <div class="qty-box" data-max="<?= isset($product['stock']) ? (int) $product['stock'] : 1 ?>">
+                                <button type="button" class="qty-btn" id="qtyMinus">−</button>
+                                <span class="qty-value" id="qtyValue">1</span>
+                                <button type="button" class="qty-btn" id="qtyPlus">+</button>
+                                <input type="hidden" name="quantity" id="qtyInput" value="1">
                             </div>
                         </div>
 
                         <div class="product-actions">
-                            <button class="detail-cart-btn" type="button">Add to Cart</button>
-                            <button class="detail-buy-btn" type="button">Buy Now</button>
+                            <form action="<?= base_url('/cart/add') ?>" method="post" class="inline-form">
+                                <?= csrf_field() ?>
+                                <input type="hidden" name="id" value="<?= isset($product['id']) ? esc($product['id']) : '' ?>">
+                                <input type="hidden" name="quantity" id="addToCartQuantity" value="1">
+                                <button class="detail-cart-btn" type="submit" <?= (isset($product['stock']) && $product['stock'] <= 0) ? 'disabled' : '' ?>>Add to Cart</button>
+                            </form>
+
+                            <form action="<?= base_url('/cart/buy') ?>" method="post" class="inline-form">
+                                <?= csrf_field() ?>
+                                <input type="hidden" name="id" value="<?= isset($product['id']) ? esc($product['id']) : '' ?>">
+                                <input type="hidden" name="quantity" id="buyNowQuantity" value="1">
+                                <button class="detail-buy-btn" type="submit" <?= (isset($product['stock']) && $product['stock'] <= 0) ? 'disabled' : '' ?>>Buy Now</button>
+                            </form>
                         </div>
+
+                        <script>
+                            (function() {
+                                const maxStock = parseInt(document.querySelector('.qty-box').dataset.max, 10) || 1;
+                                const qtyValueEl = document.getElementById('qtyValue');
+                                const qtyInput = document.getElementById('qtyInput');
+                                const addToCartQty = document.getElementById('addToCartQuantity');
+                                const buyNowQty = document.getElementById('buyNowQuantity');
+
+                                function setQuantity(value) {
+                                    const qty = Math.max(1, Math.min(maxStock, value));
+                                    qtyValueEl.textContent = qty;
+                                    qtyInput.value = qty;
+                                    addToCartQty.value = qty;
+                                    buyNowQty.value = qty;
+                                }
+
+                                document.getElementById('qtyMinus').addEventListener('click', function() {
+                                    setQuantity(parseInt(qtyValueEl.textContent, 10) - 1);
+                                });
+
+                                document.getElementById('qtyPlus').addEventListener('click', function() {
+                                    setQuantity(parseInt(qtyValueEl.textContent, 10) + 1);
+                                });
+
+                                // Ensure inputs stay in sync if manually changed
+                                setQuantity(1);
+                            })();
+                        </script>
+
                     </div>
                 </div>
             </div>
