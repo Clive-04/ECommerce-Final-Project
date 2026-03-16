@@ -38,6 +38,43 @@
 
         <div class="checkout-layout">
             <div class="confirmation-main">
+                <?php $customer = $customer ?? []; ?>
+                <?php $cart = $cart ?? []; ?>
+                <?php $shipping = $shipping ?? 'standard'; ?>
+                <?php $paymentMethod = $paymentMethod ?? 'Cash on Delivery'; ?>
+
+                <?php $subtotal = 0; ?>
+                <?php foreach ($cart as $item): ?>
+                    <?php $subtotal += $item['total']; ?>
+                <?php endforeach; ?>
+
+                <?php
+                    $shippingOptions = [
+                        'standard' => ['label' => 'Standard Shipping', 'price' => 120],
+                        'express' => ['label' => 'Express Shipping', 'price' => 220],
+                        'overnight' => ['label' => 'Overnight Shipping', 'price' => 350],
+                    ];
+                    $shippingLabel = $shippingOptions[$shipping]['label'] ?? $shippingOptions['standard']['label'];
+                    $shippingCost = $shippingOptions[$shipping]['price'] ?? $shippingOptions['standard']['price'];
+                    $grandTotal = $subtotal + $shippingCost;
+
+                    $fullName = trim(($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? '')) ?: 'N/A';
+                    $deliveryAddress = [];
+                    if (! empty($customer['street_address'])) {
+                        $deliveryAddress[] = $customer['street_address'];
+                    }
+                    if (! empty($customer['city'])) {
+                        $deliveryAddress[] = $customer['city'];
+                    }
+                    if (! empty($customer['state_province'])) {
+                        $deliveryAddress[] = $customer['state_province'];
+                    }
+                    if (! empty($customer['postal_code'])) {
+                        $deliveryAddress[] = $customer['postal_code'];
+                    }
+                    $deliveryAddress = $deliveryAddress ? implode(', ', $deliveryAddress) : 'N/A';
+                ?>
+
                 <div class="review-card">
                     <div class="review-card-header">
                         <h2>Customer Information</h2>
@@ -46,22 +83,22 @@
                     <div class="review-info-grid">
                         <div class="review-info-item">
                             <span class="review-label">Name</span>
-                            <span class="review-value">Juan Dela Cruz</span>
+                            <span class="review-value"><?= esc($fullName) ?></span>
                         </div>
 
                         <div class="review-info-item">
                             <span class="review-label">Email</span>
-                            <span class="review-value">juan.delacruz@email.com</span>
+                            <span class="review-value"><?= esc($customer['email'] ?? 'N/A') ?></span>
                         </div>
 
                         <div class="review-info-item">
                             <span class="review-label">Phone</span>
-                            <span class="review-value">0917 123 4567</span>
+                            <span class="review-value"><?= esc($customer['phone_number'] ?? 'N/A') ?></span>
                         </div>
 
                         <div class="review-info-item">
                             <span class="review-label">Delivery Address</span>
-                            <span class="review-value">123 Sample Street, Quezon City, Metro Manila</span>
+                            <span class="review-value"><?= esc($deliveryAddress) ?></span>
                         </div>
                     </div>
                 </div>
@@ -73,7 +110,7 @@
 
                     <div class="review-payment-box">
                         <span class="review-label">Selected Method</span>
-                        <span class="review-value">Credit / Debit Card</span>
+                        <span class="review-value"><?= esc($paymentMethod) ?></span>
                     </div>
                 </div>
 
@@ -83,15 +120,16 @@
                     </div>
 
                     <div class="ordered-items-list">
-                        <div class="ordered-item">
-                            <span>Headphone 1</span>
-                            <span>₱1,299</span>
-                        </div>
-
-                        <div class="ordered-item">
-                            <span>Phone Case 1 x2</span>
-                            <span>₱798</span>
-                        </div>
+                        <?php if (! empty($cart) && is_array($cart)): ?>
+                            <?php foreach ($cart as $item): ?>
+                                <div class="ordered-item">
+                                    <span><?= esc($item['name']) ?> x<?= esc($item['quantity']) ?></span>
+                                    <span>₱<?= number_format($item['total'], 2) ?></span>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <p class="text-muted">Your cart is empty.</p>
+                        <?php endif; ?>
                     </div>
                 </div>
 
@@ -108,39 +146,35 @@
             <aside class="checkout-summary-card">
                 <h2>Order Summary</h2>
 
-                <div class="summary-products">
-                    <div class="summary-product-line">
-                        <span>Headphone 1</span>
-                        <span>₱1,299</span>
+                <?php if (! empty($cart) && is_array($cart)): ?>
+                    <div class="summary-products">
+                        <?php foreach ($cart as $item): ?>
+                            <div class="summary-product-line">
+                                <span><?= esc($item['name']) ?> x<?= esc($item['quantity']) ?></span>
+                                <span>₱<?= number_format($item['total'], 2) ?></span>
+                            </div>
+                        <?php endforeach; ?>
                     </div>
 
-                    <div class="summary-product-line">
-                        <span>Phone Case 1 x2</span>
-                        <span>₱798</span>
-                    </div>
-                </div>
+                    <div class="summary-totals">
+                        <div class="summary-line">
+                            <span>Subtotal</span>
+                            <span>₱<?= number_format($subtotal, 2) ?></span>
+                        </div>
 
-                <div class="summary-totals">
-                    <div class="summary-line">
-                        <span>Subtotal</span>
-                        <span>₱2,097</span>
-                    </div>
-
-                    <div class="summary-line">
-                        <span>Shipping</span>
-                        <span>₱120</span>
+                        <div class="summary-line">
+                            <span>Shipping (<?= esc($shippingLabel) ?>)</span>
+                            <span>₱<?= number_format($shippingCost, 2) ?></span>
+                        </div>
                     </div>
 
-                    <div class="summary-line">
-                        <span>Tax</span>
-                        <span>TBD</span>
+                    <div class="summary-grand-total">
+                        <span>Total</span>
+                        <span>₱<?= number_format($grandTotal, 2) ?></span>
                     </div>
-                </div>
-
-                <div class="summary-grand-total">
-                    <span>Total</span>
-                    <span>₱2,217</span>
-                </div>
+                <?php else: ?>
+                    <p>Your cart is empty. <a href="<?= base_url('products') ?>">Browse products</a> to add items.</p>
+                <?php endif; ?>
             </aside>
         </div>
     </div>

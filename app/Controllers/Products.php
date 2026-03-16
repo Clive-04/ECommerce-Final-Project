@@ -2,16 +2,19 @@
 
 namespace App\Controllers;
 
+use App\Models\CustomerInformationModel;
 use App\Models\ProductModel;
 
 class Products extends BaseController
 {
     protected $productModel;
+    protected $customerInfoModel;
     protected $session;
 
     public function __construct()
     {
         $this->productModel = new ProductModel();
+        $this->customerInfoModel = new CustomerInformationModel();
         $this->session = session();
     }
 
@@ -226,20 +229,94 @@ class Products extends BaseController
     public function checkout()
     {
         $data['title'] = "Checkout";
+        $data['customer'] = $this->session->get('customerInfo') ?? [];
+        $data['errors'] = $this->session->getFlashdata('errors') ?? [];
+        $data['success'] = $this->session->getFlashdata('success');
 
         return view('checkout_view', $data);
+    }
+
+    public function saveCustomerInfo()
+    {
+        helper(['form']);
+
+        $rules = [
+            'first_name'     => 'required|max_length[100]',
+            'last_name'      => 'required|max_length[100]',
+            'email'          => 'required|valid_email|max_length[255]',
+            'phone_number'   => 'required|max_length[50]',
+            'street_address' => 'required|max_length[255]',
+            'city'           => 'required|max_length[100]',
+            'state_province' => 'required|max_length[100]',
+            'postal_code'    => 'required|max_length[50]',
+        ];
+
+        if (! $this->validate($rules)) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+
+        $payload = $this->request->getPost([
+            'first_name',
+            'last_name',
+            'email',
+            'phone_number',
+            'street_address',
+            'city',
+            'state_province',
+            'postal_code',
+        ]);
+
+        // Save to session for later steps
+        $this->session->set('customerInfo', $payload);
+
+        // Persist to database (update if already stored)
+        $existingId = $this->session->get('customerInfoId');
+        if ($existingId) {
+            $this->customerInfoModel->update($existingId, $payload);
+        } else {
+            $insertId = $this->customerInfoModel->insert($payload);
+            if ($insertId) {
+                $this->session->set('customerInfoId', $insertId);
+            }
+        }
+
+        return redirect()->to('/shipping')->with('success', 'Customer information saved.');
     }
 
     public function shipping()
     {
         $data['title'] = "Shipping";
+        $data['cart'] = $this->session->get('cart') ?? [];
+        $data['shipping'] = $this->session->get('shipping') ?? 'standard';
+        $data['errors'] = $this->session->getFlashdata('errors') ?? [];
+        $data['success'] = $this->session->getFlashdata('success');
 
         return view('shipping_view', $data);
+    }
+
+    public function saveShipping()
+    {
+        $shippingOptions = [
+            'standard'  => 120,
+            'express'   => 220,
+            'overnight' => 350,
+        ];
+
+        $shipping = $this->request->getPost('shipping_method');
+        if (! isset($shippingOptions[$shipping])) {
+            return redirect()->back()->with('errors', ['Please select a valid shipping option.']);
+        }
+
+        $this->session->set('shipping', $shipping);
+
+        return redirect()->to('/payment')->with('success', 'Shipping method selected.');
     }
 
     public function payment()
     {
         $data['title'] = "Payment";
+        $data['cart'] = $this->session->get('cart') ?? [];
+        $data['shipping'] = $this->session->get('shipping') ?? 'standard';
 
         return view('payment_view', $data);
     }
@@ -247,6 +324,10 @@ class Products extends BaseController
     public function confirmation()
     {
         $data['title'] = "Confirmation";
+        $data['cart'] = $this->session->get('cart') ?? [];
+        $data['shipping'] = $this->session->get('shipping') ?? 'standard';
+        $data['customer'] = $this->session->get('customerInfo') ?? [];
+        $data['paymentMethod'] = $this->session->get('paymentMethod') ?? 'Cash on Delivery';
 
         return view('confirmation_view', $data);
     }

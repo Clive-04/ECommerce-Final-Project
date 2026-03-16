@@ -18,7 +18,9 @@ $routes->post('/cart/remove', 'Products::removeFromCart');
 
 $routes->get('/cart', 'Products::cart');
 $routes->get('/checkout', 'Products::checkout');
+$routes->post('/checkout/save', 'Products::saveCustomerInfo');
 $routes->get('/shipping', 'Products::shipping');
+$routes->post('/shipping/save', 'Products::saveShipping');
 $routes->get('/payment', 'Products::payment');
 $routes->get('/confirmation', 'Products::confirmation');
 

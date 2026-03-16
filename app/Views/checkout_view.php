@@ -43,61 +43,83 @@
                     <p>Enter your details below to continue to shipping.</p>
                 </div>
 
-                <form>
+                <?php $customer = $customer ?? []; ?>
+                <?php $errors = $errors ?? []; ?>
+                <?php $success = $success ?? null; ?>
+
+                <?php if ($success): ?>
+                    <div class="alert success-alert">
+                        <?= esc($success) ?>
+                    </div>
+                <?php endif; ?>
+
+                <?php if (! empty($errors) && is_array($errors)): ?>
+                    <div class="alert error-alert">
+                        <ul>
+                            <?php foreach ($errors as $fieldError): ?>
+                                <li><?= esc($fieldError) ?></li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
+                <?php endif; ?>
+
+                <form action="<?= base_url('checkout/save') ?>" method="post">
+                    <?= csrf_field() ?>
+
                     <div class="checkout-grid two-col">
                         <div class="form-group">
                             <label for="firstName">First Name*</label>
-                            <input type="text" id="firstName" placeholder="Enter first name">
+                            <input type="text" id="firstName" name="first_name" value="<?= esc(old('first_name', $customer['first_name'] ?? '')) ?>" placeholder="Enter first name">
                         </div>
 
                         <div class="form-group">
                             <label for="lastName">Last Name*</label>
-                            <input type="text" id="lastName" placeholder="Enter last name">
+                            <input type="text" id="lastName" name="last_name" value="<?= esc(old('last_name', $customer['last_name'] ?? '')) ?>" placeholder="Enter last name">
                         </div>
                     </div>
 
                     <div class="checkout-grid one-col">
                         <div class="form-group">
                             <label for="emailAddress">Email Address*</label>
-                            <input type="email" id="emailAddress" placeholder="Enter email address">
+                            <input type="email" id="emailAddress" name="email" value="<?= esc(old('email', $customer['email'] ?? '')) ?>" placeholder="Enter email address">
                         </div>
                     </div>
 
                     <div class="checkout-grid one-col">
                         <div class="form-group">
                             <label for="phoneNumber">Phone Number*</label>
-                            <input type="text" id="phoneNumber" placeholder="Enter phone number">
+                            <input type="text" id="phoneNumber" name="phone_number" value="<?= esc(old('phone_number', $customer['phone_number'] ?? '')) ?>" placeholder="Enter phone number">
                         </div>
                     </div>
 
                     <div class="checkout-grid one-col">
                         <div class="form-group">
                             <label for="streetAddress">Street Address*</label>
-                            <input type="text" id="streetAddress" placeholder="Enter street address">
+                            <input type="text" id="streetAddress" name="street_address" value="<?= esc(old('street_address', $customer['street_address'] ?? '')) ?>" placeholder="Enter street address">
                         </div>
                     </div>
 
                     <div class="checkout-grid two-col">
                         <div class="form-group">
                             <label for="city">City*</label>
-                            <input type="text" id="city" placeholder="Enter city">
+                            <input type="text" id="city" name="city" value="<?= esc(old('city', $customer['city'] ?? '')) ?>" placeholder="Enter city">
                         </div>
 
                         <div class="form-group">
                             <label for="province">State/Province*</label>
-                            <input type="text" id="province" placeholder="Enter state or province">
+                            <input type="text" id="province" name="state_province" value="<?= esc(old('state_province', $customer['state_province'] ?? '')) ?>" placeholder="Enter state or province">
                         </div>
                     </div>
 
                     <div class="checkout-grid one-col">
                         <div class="form-group">
                             <label for="postalCode">Postal Code*</label>
-                            <input type="text" id="postalCode" placeholder="Enter postal code">
+                            <input type="text" id="postalCode" name="postal_code" value="<?= esc(old('postal_code', $customer['postal_code'] ?? '')) ?>" placeholder="Enter postal code">
                         </div>
                     </div>
 
                     <div class="checkout-action">
-                        <a href="<?= base_url('shipping') ?>" class="continue-btn">Continue to Shipping</a>
+                        <button type="submit" class="continue-btn">Continue to Shipping</button>
                     </div>
                 </form>
             </div>
@@ -105,39 +127,39 @@
             <aside class="checkout-summary-card">
                 <h2>Order Summary</h2>
 
-                <div class="summary-products">
-                    <div class="summary-product-line">
-                        <span>Headphone 1</span>
-                        <span>₱1,299</span>
+                <?php $cart = session()->get('cart') ?? []; ?>
+
+                <?php if (! empty($cart) && is_array($cart)): ?>
+                    <?php $subtotal = 0; ?>
+                    <div class="summary-products">
+                        <?php foreach ($cart as $item): ?>
+                            <?php $subtotal += $item['total']; ?>
+                            <div class="summary-product-line">
+                                <span><?= esc($item['name']) ?> x<?= esc($item['quantity']) ?></span>
+                                <span>₱<?= number_format($item['total'], 2) ?></span>
+                            </div>
+                        <?php endforeach; ?>
                     </div>
 
-                    <div class="summary-product-line">
-                        <span>Phone Case 1 x2</span>
-                        <span>₱798</span>
-                    </div>
-                </div>
+                    <div class="summary-totals">
+                        <div class="summary-line">
+                            <span>Subtotal</span>
+                            <span>₱<?= number_format($subtotal, 2) ?></span>
+                        </div>
 
-                <div class="summary-totals">
-                    <div class="summary-line">
-                        <span>Subtotal</span>
-                        <span>₱2,097</span>
-                    </div>
-
-                    <div class="summary-line">
-                        <span>Shipping</span>
-                        <span>TBD</span>
+                        <div class="summary-line">
+                            <span>Shipping</span>
+                            <span>TBD</span>
+                        </div>
                     </div>
 
-                    <div class="summary-line">
-                        <span>Tax</span>
-                        <span>TBD</span>
+                    <div class="summary-grand-total">
+                        <span>Total</span>
+                        <span>₱<?= number_format($subtotal, 2) ?></span>
                     </div>
-                </div>
-
-                <div class="summary-grand-total">
-                    <span>Total</span>
-                    <span>₱2,097</span>
-                </div>
+                <?php else: ?>
+                    <p>Your cart is empty. <a href="<?= base_url('products') ?>">Browse products</a> to add items.</p>
+                <?php endif; ?>
             </aside>
         </div>
     </div>
