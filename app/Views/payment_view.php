@@ -44,50 +44,6 @@
                 </div>
 
                 <div class="payment-methods">
-                    <label class="payment-option">
-                        <input type="radio" name="payment_method">
-                        <div class="payment-option-inner">
-                            <div class="payment-option-header">
-                                <span class="payment-option-title">Credit / Debit Card</span>
-                            </div>
-
-                            <div class="payment-card-form">
-                                <div class="form-group">
-                                    <label for="cardNumber">Card Number*</label>
-                                    <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456">
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="cardName">Card Holder Name*</label>
-                                    <input type="text" id="cardName" placeholder="Full name on card">
-                                </div>
-
-                                <div class="payment-grid">
-                                    <div class="form-group">
-                                        <label for="expiryDate">Expiry Date*</label>
-                                        <input type="text" id="expiryDate" placeholder="MM/YY">
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label for="ccv">CCV*</label>
-                                        <input type="text" id="ccv" placeholder="123">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </label>
-
-                    <label class="payment-option compact-option">
-                        <input type="radio" name="payment_method">
-                        <div class="payment-option-inner">
-                            <div class="payment-option-header">
-                                <span class="payment-option-title">E-Wallet</span>
-                            </div>
-                            <p class="payment-option-note">Use a digital wallet once backend integration is available.
-                            </p>
-                        </div>
-                    </label>
-
                     <label class="payment-option compact-option">
                         <input type="radio" name="payment_method">
                         <div class="payment-option-inner">
@@ -108,39 +64,53 @@
             <aside class="checkout-summary-card">
                 <h2>Order Summary</h2>
 
-                <div class="summary-products">
-                    <div class="summary-product-line">
-                        <span>Headphone 1</span>
-                        <span>₱1,299</span>
+                <?php $cart = $cart ?? []; ?>
+                <?php $shipping = $shipping ?? 'standard'; ?>
+
+                <?php $subtotal = 0; ?>
+                <?php foreach ($cart as $item): ?>
+                    <?php $subtotal += $item['total']; ?>
+                <?php endforeach; ?>
+
+                <?php
+                    $shippingPrices = [
+                        'standard' => 120,
+                        'express' => 220,
+                        'overnight' => 350,
+                    ];
+                    $shippingCost = $shippingPrices[$shipping] ?? $shippingPrices['standard'];
+                    $grandTotal = $subtotal + $shippingCost;
+                ?>
+
+                <?php if (! empty($cart) && is_array($cart)): ?>
+                    <div class="summary-products">
+                        <?php foreach ($cart as $item): ?>
+                            <div class="summary-product-line">
+                                <span><?= esc($item['name']) ?> x<?= esc($item['quantity']) ?></span>
+                                <span>₱<?= number_format($item['total'], 2) ?></span>
+                            </div>
+                        <?php endforeach; ?>
                     </div>
 
-                    <div class="summary-product-line">
-                        <span>Phone Case 1 x2</span>
-                        <span>₱798</span>
-                    </div>
-                </div>
+                    <div class="summary-totals">
+                        <div class="summary-line">
+                            <span>Subtotal</span>
+                            <span>₱<?= number_format($subtotal, 2) ?></span>
+                        </div>
 
-                <div class="summary-totals">
-                    <div class="summary-line">
-                        <span>Subtotal</span>
-                        <span>₱2,097</span>
-                    </div>
-
-                    <div class="summary-line">
-                        <span>Shipping</span>
-                        <span>₱120</span>
+                        <div class="summary-line">
+                            <span>Shipping</span>
+                            <span>₱<?= number_format($shippingCost, 2) ?></span>
+                        </div>
                     </div>
 
-                    <div class="summary-line">
-                        <span>Tax</span>
-                        <span>TBD</span>
+                    <div class="summary-grand-total">
+                        <span>Total</span>
+                        <span>₱<?= number_format($grandTotal, 2) ?></span>
                     </div>
-                </div>
-
-                <div class="summary-grand-total">
-                    <span>Total</span>
-                    <span>₱2,217</span>
-                </div>
+                <?php else: ?>
+                    <p>Your cart is empty. <a href="<?= base_url('products') ?>">Browse products</a> to add items.</p>
+                <?php endif; ?>
             </aside>
         </div>
     </div>
