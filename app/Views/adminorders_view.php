@@ -95,76 +95,39 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td><strong>#ORD-1001</strong></td>
-                                <td>Clive Benito</td>
-                                <td>3 Items</td>
-                                <td>₱4,299</td>
-                                <td><span class="table-status in-stock">Delivered</span></td>
-                                <td>Mar 14, 2026</td>
-                                <td class="table-actions">
-                                    <button class="table-icon-btn"><i class="bi bi-eye"></i></button>
-                                    <button class="table-icon-btn"><i class="bi bi-pencil"></i></button>
-                                    <button class="table-icon-btn"><i class="bi bi-three-dots-vertical"></i></button>
-                                </td>
-                            </tr>
 
-                            <tr>
-                                <td><strong>#ORD-1002</strong></td>
-                                <td>Emer Alcoreza</td>
-                                <td>1 Item</td>
-                                <td>₱1,899</td>
-                                <td><span class="table-status low-stock">Pending</span></td>
-                                <td>Mar 13, 2026</td>
-                                <td class="table-actions">
-                                    <button class="table-icon-btn"><i class="bi bi-eye"></i></button>
-                                    <button class="table-icon-btn"><i class="bi bi-pencil"></i></button>
-                                    <button class="table-icon-btn"><i class="bi bi-three-dots-vertical"></i></button>
-                                </td>
-                            </tr>
+<?php foreach($orders as $order): ?>
 
-                            <tr>
-                                <td><strong>#ORD-1003</strong></td>
-                                <td>Ozbert Sales</td>
-                                <td>2 Items</td>
-                                <td>₱2,750</td>
-                                <td><span class="status-pill shipped">Shipped</span></td>
-                                <td>Mar 12, 2026</td>
-                                <td class="table-actions">
-                                    <button class="table-icon-btn"><i class="bi bi-eye"></i></button>
-                                    <button class="table-icon-btn"><i class="bi bi-pencil"></i></button>
-                                    <button class="table-icon-btn"><i class="bi bi-three-dots-vertical"></i></button>
-                                </td>
-                            </tr>
+<tr>
 
-                            <tr>
-                                <td><strong>#ORD-1004</strong></td>
-                                <td>Weinard Manianglung</td>
-                                <td>4 Items</td>
-                                <td>₱5,180</td>
-                                <td><span class="status-pill processing">Processing</span></td>
-                                <td>Mar 11, 2026</td>
-                                <td class="table-actions">
-                                    <button class="table-icon-btn"><i class="bi bi-eye"></i></button>
-                                    <button class="table-icon-btn"><i class="bi bi-pencil"></i></button>
-                                    <button class="table-icon-btn"><i class="bi bi-three-dots-vertical"></i></button>
-                                </td>
-                            </tr>
+<td><strong>#<?= esc($order['order_number']) ?></strong></td>
 
-                            <tr>
-                                <td><strong>#ORD-1005</strong></td>
-                                <td>Juan Dela Cruz</td>
-                                <td>1 Item</td>
-                                <td>₱999</td>
-                                <td><span class="table-status out-stock">Cancelled</span></td>
-                                <td>Mar 10, 2026</td>
-                                <td class="table-actions">
-                                    <button class="table-icon-btn"><i class="bi bi-eye"></i></button>
-                                    <button class="table-icon-btn"><i class="bi bi-pencil"></i></button>
-                                    <button class="table-icon-btn"><i class="bi bi-three-dots-vertical"></i></button>
-                                </td>
-                            </tr>
-                        </tbody>
+<td><?= esc($order['customer_name']) ?></td>
+
+<td>1 Item</td>
+
+<td>₱<?= number_format($order['total'],2) ?></td>
+
+<td>
+<span class="table-status">
+<?= esc($order['status']) ?>
+</span>
+</td>
+
+<td>
+<?= date('M d, Y', strtotime($order['order_date'])) ?>
+</td>
+
+<td class="table-actions">
+<button class="table-icon-btn"><i class="bi bi-eye"></i></button>
+<button class="table-icon-btn"><i class="bi bi-pencil"></i></button>
+</td>
+
+</tr>
+
+<?php endforeach; ?>
+
+</tbody>
                     </table>
                 </div>
 

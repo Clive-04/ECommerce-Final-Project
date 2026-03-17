@@ -94,90 +94,57 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>
-                                    <div class="product-cell">
-                                        <div class="product-thumb thumb-blue"></div>
-                                        <div>
-                                            <strong>Wireless Earbuds Pro</strong>
-                                            <p>SKU: VZ-1001</p>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>Audio</td>
-                                <td>₱2,499</td>
-                                <td>124</td>
-                                <td><span class="table-status in-stock">In Stock</span></td>
-                                <td class="table-actions">
-                                    <button class="table-icon-btn"><i class="bi bi-pencil"></i></button>
-                                    <button class="table-icon-btn danger"><i class="bi bi-trash"></i></button>
-                                    <button class="table-icon-btn"><i class="bi bi-three-dots-vertical"></i></button>
-                                </td>
-                            </tr>
 
-                            <tr>
-                                <td>
-                                    <div class="product-cell">
-                                        <div class="product-thumb thumb-orange"></div>
-                                        <div>
-                                            <strong>Portable Charger Max</strong>
-                                            <p>SKU: VZ-1002</p>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>Power</td>
-                                <td>₱1,899</td>
-                                <td>18</td>
-                                <td><span class="table-status low-stock">Low Stock</span></td>
-                                <td class="table-actions">
-                                    <button class="table-icon-btn"><i class="bi bi-pencil"></i></button>
-                                    <button class="table-icon-btn danger"><i class="bi bi-trash"></i></button>
-                                    <button class="table-icon-btn"><i class="bi bi-three-dots-vertical"></i></button>
-                                </td>
-                            </tr>
+<?php foreach($products as $product): ?>
 
-                            <tr>
-                                <td>
-                                    <div class="product-cell">
-                                        <div class="product-thumb thumb-green"></div>
-                                        <div>
-                                            <strong>USB-C Fast Charger</strong>
-                                            <p>SKU: VZ-1003</p>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>Chargers</td>
-                                <td>₱999</td>
-                                <td>0</td>
-                                <td><span class="table-status out-stock">Out of Stock</span></td>
-                                <td class="table-actions">
-                                    <button class="table-icon-btn"><i class="bi bi-pencil"></i></button>
-                                    <button class="table-icon-btn danger"><i class="bi bi-trash"></i></button>
-                                    <button class="table-icon-btn"><i class="bi bi-three-dots-vertical"></i></button>
-                                </td>
-                            </tr>
+<tr>
 
-                            <tr>
-                                <td>
-                                    <div class="product-cell">
-                                        <div class="product-thumb thumb-purple"></div>
-                                        <div>
-                                            <strong>Mechanical Keyboard Lite</strong>
-                                            <p>SKU: VZ-1004</p>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>Accessories</td>
-                                <td>₱3,299</td>
-                                <td>54</td>
-                                <td><span class="table-status in-stock">In Stock</span></td>
-                                <td class="table-actions">
-                                    <button class="table-icon-btn"><i class="bi bi-pencil"></i></button>
-                                    <button class="table-icon-btn danger"><i class="bi bi-trash"></i></button>
-                                    <button class="table-icon-btn"><i class="bi bi-three-dots-vertical"></i></button>
-                                </td>
-                            </tr>
-                        </tbody>
+<td>
+<div class="product-cell">
+<div class="product-thumb"></div>
+
+<div>
+<strong><?= esc($product['name']) ?></strong>
+<p>SKU: <?= esc($product['sku']) ?></p>
+</div>
+
+</div>
+</td>
+
+<td><?= esc($product['category']) ?></td>
+
+<td>₱<?= number_format($product['price'],2) ?></td>
+
+<td><?= $product['stock'] ?></td>
+
+<td>
+
+<?php
+$status = $product['status'];
+
+$class = 'in-stock';
+
+if($status == 'Low Stock') $class = 'low-stock';
+if($status == 'Out of Stock') $class = 'out-stock';
+?>
+
+<span class="table-status <?= $class ?>">
+<?= esc($status) ?>
+</span>
+
+</td>
+
+<td class="table-actions">
+<button class="table-icon-btn"><i class="bi bi-pencil"></i></button>
+<button class="table-icon-btn danger"><i class="bi bi-trash"></i></button>
+</td>
+
+</tr>
+
+<?php endforeach; ?>
+
+</tbody>
+
                     </table>
                 </div>
 
