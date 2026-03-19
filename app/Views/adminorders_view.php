@@ -52,21 +52,26 @@
 
             <!-- Toolbar -->
             <section class="admin-products-toolbar">
-                <div class="admin-search-box">
+                <form method="get" action="<?= base_url('/admin/orders') ?>" class="admin-search-box">
                     <i class="bi bi-search"></i>
-                    <input type="text" placeholder="Search order ID, customer, or status">
-                </div>
+                    <input
+                        type="text"
+                        name="search"
+                        placeholder="Search order ID or customer"
+                        value="<?= esc($search ?? '') ?>"
+                    />
+                </form>
 
                 <div class="admin-toolbar-actions">
-                    <button class="admin-outline-btn">
+                    <button class="admin-outline-btn" type="button">
                         <i class="bi bi-funnel"></i>
                         Filter
                     </button>
 
-                    <button class="admin-primary-btn">
+                    <a href="<?= base_url('/admin/orders/export/csv') . '?search=' . urlencode($search ?? '') ?>" class="admin-primary-btn">
                         <i class="bi bi-download"></i>
-                        Export
-                    </button>
+                        Export CSV
+                    </a>
                 </div>
             </section>
 
@@ -78,7 +83,7 @@
                         <p class="panel-subtext">Track and manage customer purchases.</p>
                     </div>
 
-                    <span class="table-count-badge">324 Orders</span>
+                    <span class="table-count-badge"><?= esc($orderCount ?? 0) ?> Orders</span>
                 </div>
 
                 <div class="products-table-wrapper">
@@ -95,89 +100,34 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td><strong>#ORD-1001</strong></td>
-                                <td>Clive Benito</td>
-                                <td>3 Items</td>
-                                <td>₱4,299</td>
-                                <td><span class="table-status in-stock">Delivered</span></td>
-                                <td>Mar 14, 2026</td>
-                                <td class="table-actions">
-                                    <button class="table-icon-btn"><i class="bi bi-eye"></i></button>
-                                    <button class="table-icon-btn"><i class="bi bi-pencil"></i></button>
-                                    <button class="table-icon-btn"><i class="bi bi-three-dots-vertical"></i></button>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td><strong>#ORD-1002</strong></td>
-                                <td>Emer Alcoreza</td>
-                                <td>1 Item</td>
-                                <td>₱1,899</td>
-                                <td><span class="table-status low-stock">Pending</span></td>
-                                <td>Mar 13, 2026</td>
-                                <td class="table-actions">
-                                    <button class="table-icon-btn"><i class="bi bi-eye"></i></button>
-                                    <button class="table-icon-btn"><i class="bi bi-pencil"></i></button>
-                                    <button class="table-icon-btn"><i class="bi bi-three-dots-vertical"></i></button>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td><strong>#ORD-1003</strong></td>
-                                <td>Ozbert Sales</td>
-                                <td>2 Items</td>
-                                <td>₱2,750</td>
-                                <td><span class="status-pill shipped">Shipped</span></td>
-                                <td>Mar 12, 2026</td>
-                                <td class="table-actions">
-                                    <button class="table-icon-btn"><i class="bi bi-eye"></i></button>
-                                    <button class="table-icon-btn"><i class="bi bi-pencil"></i></button>
-                                    <button class="table-icon-btn"><i class="bi bi-three-dots-vertical"></i></button>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td><strong>#ORD-1004</strong></td>
-                                <td>Weinard Manianglung</td>
-                                <td>4 Items</td>
-                                <td>₱5,180</td>
-                                <td><span class="status-pill processing">Processing</span></td>
-                                <td>Mar 11, 2026</td>
-                                <td class="table-actions">
-                                    <button class="table-icon-btn"><i class="bi bi-eye"></i></button>
-                                    <button class="table-icon-btn"><i class="bi bi-pencil"></i></button>
-                                    <button class="table-icon-btn"><i class="bi bi-three-dots-vertical"></i></button>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td><strong>#ORD-1005</strong></td>
-                                <td>Juan Dela Cruz</td>
-                                <td>1 Item</td>
-                                <td>₱999</td>
-                                <td><span class="table-status out-stock">Cancelled</span></td>
-                                <td>Mar 10, 2026</td>
-                                <td class="table-actions">
-                                    <button class="table-icon-btn"><i class="bi bi-eye"></i></button>
-                                    <button class="table-icon-btn"><i class="bi bi-pencil"></i></button>
-                                    <button class="table-icon-btn"><i class="bi bi-three-dots-vertical"></i></button>
-                                </td>
-                            </tr>
+                            <?php if (! empty($orders) && is_array($orders)): ?>
+                                <?php foreach ($orders as $order): ?>
+                                    <?php $statusClass = strtolower(str_replace(' ', '-', $order['status'] ?? '')); ?>
+                                    <tr>
+                                        <td><strong>#ORD-<?= esc($order['id']) ?></strong></td>
+                                        <td><?= esc($order['customer']) ?></td>
+                                        <td><?= esc($order['items']) ?> Item<?= (int) $order['items'] === 1 ? '' : 's' ?></td>
+                                        <td>₱<?= number_format($order['total'], 2) ?></td>
+                                        <td><span class="table-status <?= esc($statusClass) ?>"><?= esc($order['status']) ?></span></td>
+                                        <td><?= esc(date('M d, Y', strtotime($order['date']))) ?></td>
+                                        <td class="table-actions">
+                                            <a href="<?= base_url('/admin/orders/view/' . $order['id']) ?>" class="table-icon-btn" title="View order">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="7" class="text-center">No orders found.</td>
+                                </tr>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
 
                 <div class="table-footer">
-                    <p>Showing 1–5 of 324 orders</p>
-
-                    <div class="pagination-wrap">
-                        <button class="pagination-btn">Previous</button>
-                        <button class="pagination-btn active">1</button>
-                        <button class="pagination-btn">2</button>
-                        <button class="pagination-btn">3</button>
-                        <button class="pagination-btn">Next</button>
-                    </div>
+                    <p><?= esc($orderCount ?? 0) ?> orders shown</p>
                 </div>
             </section>
         </main>

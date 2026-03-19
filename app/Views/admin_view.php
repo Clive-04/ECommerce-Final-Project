@@ -26,7 +26,7 @@
             </div>
 
             <div class="admin-sidebar-bottom">
-                <a href="#" class="admin-nav-link logout-link">
+                <a href="<?= base_url('/logout') ?>" class="admin-nav-link logout-link">
                     <i class="bi bi-box-arrow-left"></i>
                     <span>Logout</span>
                 </a>
@@ -41,12 +41,13 @@
                     <h1>Dashboard</h1>
                 </div>
 
+                <?php $adminName = $adminName ?? 'Admin'; ?>
                 <div class="admin-user">
                     <div class="admin-user-text">
                         <span class="admin-user-label">User</span>
-                        <strong>Admin Account</strong>
+                        <strong><?= esc($adminName) ?></strong>
                     </div>
-                    <div class="admin-user-avatar">A</div>
+                    <div class="admin-user-avatar"><?= esc(strtoupper(substr($adminName, 0, 1))) ?></div>
                 </div>
             </div>
 
@@ -58,8 +59,8 @@
                     </div>
                     <div>
                         <p class="stat-label">Total Revenue</p>
-                        <h3>₱125,430</h3>
-                        <span class="stat-sub">+12.4% this month</span>
+                        <h3>₱<?= number_format($totalRevenue ?? 0, 2) ?></h3>
+                        <span class="stat-sub">Since launch</span>
                     </div>
                 </div>
 
@@ -69,8 +70,8 @@
                     </div>
                     <div>
                         <p class="stat-label">Total Orders</p>
-                        <h3>324</h3>
-                        <span class="stat-sub">18 pending orders</span>
+                        <h3><?= esc($totalOrders ?? 0) ?></h3>
+                        <span class="stat-sub"><?= esc($pendingOrders ?? 0) ?> pending orders</span>
                     </div>
                 </div>
 
@@ -80,8 +81,8 @@
                     </div>
                     <div>
                         <p class="stat-label">Total Products</p>
-                        <h3>48</h3>
-                        <span class="stat-sub">6 low stock items</span>
+                        <h3><?= esc($totalProducts ?? 0) ?></h3>
+                        <span class="stat-sub"><?= esc($lowStockCount ?? 0) ?> low stock items</span>
                     </div>
                 </div>
             </section>
@@ -91,82 +92,57 @@
                 <div class="admin-panel-card tall-card">
                     <div class="panel-header">
                         <h3>Recent Orders</h3>
-                        <a href="#">View all</a>
+                        <a href="<?= base_url('/admin/orders') ?>">View all</a>
                     </div>
 
                     <div class="order-list">
-                        <div class="order-item">
-                            <div>
-                                <strong>#ORD-1001</strong>
-                                <p>Wireless Earbuds Pro</p>
+                        <?php if (! empty($recentOrders) && is_array($recentOrders)): ?>
+                            <?php foreach ($recentOrders as $order): ?>
+                                <?php $statusClass = strtolower(str_replace(' ', '-', $order['status'] ?? '')); ?>
+                                <div class="order-item">
+                                    <div>
+                                        <strong>#ORD-<?= esc($order['order_number']) ?></strong>
+                                        <p><?= esc($order['product'] ?: '—') ?></p>
+                                    </div>
+                                    <span class="status-pill <?= esc($statusClass) ?>"><?= esc($order['status']) ?></span>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div class="order-item">
+                                <div>
+                                    <p>No recent orders found.</p>
+                                </div>
                             </div>
-                            <span class="status-pill shipped">Shipped</span>
-                        </div>
-
-                        <div class="order-item">
-                            <div>
-                                <strong>#ORD-1002</strong>
-                                <p>Portable Charger 20,000mAh</p>
-                            </div>
-                            <span class="status-pill pending">Pending</span>
-                        </div>
-
-                        <div class="order-item">
-                            <div>
-                                <strong>#ORD-1003</strong>
-                                <p>Gaming Mouse RGB</p>
-                            </div>
-                            <span class="status-pill delivered">Delivered</span>
-                        </div>
-
-                        <div class="order-item">
-                            <div>
-                                <strong>#ORD-1004</strong>
-                                <p>Bluetooth Speaker Mini</p>
-                            </div>
-                            <span class="status-pill processing">Processing</span>
-                        </div>
+                        <?php endif; ?>
                     </div>
                 </div>
 
                 <div class="admin-panel-card tall-card">
                     <div class="panel-header">
                         <h3>Top Products</h3>
-                        <a href="#">Manage</a>
+                        <a href="<?= base_url('/admin/products') ?>">Manage</a>
                     </div>
 
                     <div class="product-rank-list">
-                        <div class="rank-item">
-                            <span class="rank-number">01</span>
-                            <div>
-                                <strong>Wireless Earbuds Pro</strong>
-                                <p>124 units sold</p>
+                        <?php if (! empty($topProducts) && is_array($topProducts)): ?>
+                            <?php foreach ($topProducts as $index => $product): ?>
+                                <div class="rank-item">
+                                    <span class="rank-number"><?= esc(str_pad($index + 1, 2, '0', STR_PAD_LEFT)) ?></span>
+                                    <div>
+                                        <strong><?= esc($product['name']) ?></strong>
+                                        <p><?= esc($product['soldQty']) ?> units sold</p>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div class="rank-item">
+                                <span class="rank-number">01</span>
+                                <div>
+                                    <strong>No products sold yet</strong>
+                                    <p>—</p>
+                                </div>
                             </div>
-                        </div>
-
-                        <div class="rank-item">
-                            <span class="rank-number">02</span>
-                            <div>
-                                <strong>Power Bank Max</strong>
-                                <p>98 units sold</p>
-                            </div>
-                        </div>
-
-                        <div class="rank-item">
-                            <span class="rank-number">03</span>
-                            <div>
-                                <strong>USB-C Fast Charger</strong>
-                                <p>87 units sold</p>
-                            </div>
-                        </div>
-
-                        <div class="rank-item">
-                            <span class="rank-number">04</span>
-                            <div>
-                                <strong>Mechanical Keyboard Lite</strong>
-                                <p>75 units sold</p>
-                            </div>
-                        </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </section>

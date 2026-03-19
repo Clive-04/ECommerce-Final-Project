@@ -9,20 +9,89 @@ class Products extends BaseController
 {
     protected $productModel;
     protected $customerInfoModel;
-    protected $session;
-    /**
-     * Instance of the main Request object.
-     *
-     * @var \CodeIgniter\HTTP\IncomingRequest
-     */
-    protected $request;
 
-    public function __construct()
+    public function initController(
+        \CodeIgniter\HTTP\RequestInterface $request,
+        \CodeIgniter\HTTP\ResponseInterface $response,
+        \Psr\Log\LoggerInterface $logger
+    )
     {
-        $this->request = service('request'); // Returns IncomingRequest
+        parent::initController($request, $response, $logger);
+
+        // Models used across this controller
         $this->productModel = new ProductModel();
         $this->customerInfoModel = new CustomerInformationModel();
-        $this->session = session();
+    }
+
+    protected function getCheckoutMode(): string
+    {
+        // Determine checkout mode from query parameter (preferred) or stored session state.
+        $mode = $this->request->getVar('source') ?? $this->session->get('checkoutMode') ?? 'cart';
+        if (! in_array($mode, ['cart', 'buyNow'])) {
+            $mode = 'cart';
+        }
+
+        // If explicit cart checkout requested, clear any buy-now state.
+        if ($mode === 'cart') {
+            $this->session->remove('buyNowItem');
+        }
+
+        // If buy now mode is requested but no buy-now item exists, fall back to cart.
+        if ($mode === 'buyNow' && ! $this->session->get('buyNowItem')) {
+            $mode = 'cart';
+        }
+
+        $this->session->set('checkoutMode', $mode);
+        return $mode;
+    }
+
+    protected function buildOrderSummary(): array
+    {
+        $mode = $this->getCheckoutMode();
+        $orderSummary = [];
+        $total = 0;
+        $productModel = new ProductModel();
+
+        if ($mode === 'buyNow') {
+            $buyNowItem = $this->session->get('buyNowItem');
+            if ($buyNowItem) {
+                $product = $productModel->find($buyNowItem['product_id']);
+                if ($product) {
+                    $quantity = (int) ($buyNowItem['quantity'] ?? 1);
+                    $itemTotal = $product['price'] * $quantity;
+                    $orderSummary[] = [
+                        'name' => $product['name'],
+                        'price' => $product['price'],
+                        'quantity' => $quantity,
+                        'total' => $itemTotal,
+                    ];
+                    $total = $itemTotal;
+                }
+            }
+        } else {
+            $userId = session()->get('user_id');
+            $cartModel = new \App\Models\CartModel();
+            $cartItemModel = new \App\Models\CartItemModel();
+            $cartId = $cartModel->getOrCreateCart($userId);
+            $cartItems = $cartItemModel->getCartItems($cartId);
+
+            foreach ($cartItems as $item) {
+                $product = $productModel->find($item['product_id']);
+                if (! $product) {
+                    continue;
+                }
+                $itemTotal = $product['price'] * $item['quantity'];
+                $orderSummary[] = [
+                    'name' => $product['name'],
+                    'price' => $product['price'],
+                    'quantity' => $item['quantity'],
+                    'total' => $itemTotal,
+                ];
+                $total += $itemTotal;
+            }
+        }
+
+        return ['orderSummary' => $orderSummary, 'orderTotal' => $total];
     }
 
     public function index()
@@ -81,6 +150,10 @@ class Products extends BaseController
 
     protected function addProductToCart(int $id, int $quantity): array
     {
+        if (! session()->get('logged_in')) {
+            return ['success' => false, 'message' => 'Please log in to add items to your cart.'];
+        }
+
         if ($quantity <= 0) {
             return ['success' => false, 'message' => 'Invalid quantity.'];
         }
@@ -97,7 +170,14 @@ class Products extends BaseController
         // Deduct stock in database
         $this->productModel->update($id, ['stock' => $product['stock'] - $quantity]);
 
-        // Add/update session cart
+        // Store cart item in DB
+        $userId = session()->get('user_id');
+        $cartModel = new \App\Models\CartModel();
+        $cartItemModel = new \App\Models\CartItemModel();
+        $cartId = $cartModel->getOrCreateCart($userId);
+        $cartItemModel->addItem($cartId, $id, $quantity);
+
+        // Keep session cart for UI (if used elsewhere)
         $cart = $this->session->get('cart') ?? [];
         if (isset($cart[$id])) {
             $cart[$id]['quantity'] += $quantity;
@@ -157,16 +237,37 @@ class Products extends BaseController
         $id = $this->request->getVar('id');
         $quantity = (int) $this->request->getVar('quantity');
 
+        if (!session()->get('logged_in')) {
+            return redirect()->to('/login')->with('error', 'Please log in to continue.');
+        }
+
         if (! $id) {
             return redirect()->back()->with('error', 'Invalid product.');
         }
 
-        $result = $this->addProductToCart((int) $id, $quantity);
-        if (! $result['success']) {
-            return redirect()->back()->with('error', $result['message']);
+        $product = $this->productModel->find($id);
+        if (! $product) {
+            return redirect()->back()->with('error', 'Product not found.');
         }
 
-        return redirect()->to('/checkout')->with('success', $result['message']);
+        if ($quantity <= 0) {
+            return redirect()->back()->with('error', 'Invalid quantity.');
+        }
+
+        if ($product['stock'] < $quantity) {
+            return redirect()->back()->with('error', 'Not enough stock for the requested quantity.');
+        }
+
+        // Deduct stock in database
+        $this->productModel->update($id, ['stock' => $product['stock'] - $quantity]);
+
+        // Store only the buy-now item in session (so it doesn't merge with cart)
+        $this->session->set('buyNowItem', [
+            'product_id' => $id,
+            'quantity'   => $quantity,
+        ]);
+
+        return redirect()->to('/checkout?source=buyNow')->with('success', 'Proceeding to checkout for this item.');
     }
 
     public function cart()
@@ -290,33 +391,15 @@ class Products extends BaseController
         $data['errors'] = $this->session->getFlashdata('errors') ?? [];
         $data['success'] = $this->session->getFlashdata('success');
 
-        // Get cart items for user
         if (!session()->get('logged_in')) {
             return redirect()->to('/login')->with('error', 'Please log in to checkout.');
         }
-        $userId = session()->get('user_id');
-        $cartModel = new \App\Models\CartModel();
-        $cartItemModel = new \App\Models\CartItemModel();
-        $cartId = $cartModel->getOrCreateCart($userId);
-        $cartItems = $cartItemModel->getCartItems($cartId);
 
-        $productModel = new \App\Models\ProductModel();
-        $orderSummary = [];
-        $total = 0;
-        foreach ($cartItems as $item) {
-            $product = $productModel->find($item['product_id']);
-            if ($product) {
-                $orderSummary[] = [
-                    'name' => $product['name'],
-                    'price' => $product['price'],
-                    'quantity' => $item['quantity'],
-                    'total' => $product['price'] * $item['quantity']
-                ];
-                $total += $product['price'] * $item['quantity'];
-            }
-        }
-        $data['orderSummary'] = $orderSummary;
-        $data['orderTotal'] = $total;
+        // Determine whether we are in "cart" or "buy now" mode and build the order summary.
+        $data['checkoutMode'] = $this->getCheckoutMode();
+        $summary = $this->buildOrderSummary();
+        $data['orderSummary'] = $summary['orderSummary'];
+        $data['orderTotal'] = $summary['orderTotal'];
 
         return view('checkout_view', $data);
     }
@@ -327,46 +410,71 @@ class Products extends BaseController
         if (!session()->get('logged_in')) {
             return redirect()->to('/login')->with('error', 'Please log in to place your order.');
         }
+
         $userId = session()->get('user_id');
-        $cartModel = new \App\Models\CartModel();
-        $cartItemModel = new \App\Models\CartItemModel();
-        $cartId = $cartModel->getOrCreateCart($userId);
-        $cartItems = $cartItemModel->getCartItems($cartId);
         $productModel = new \App\Models\ProductModel();
         $orderModel = new \App\Models\OrderModel();
         $orderItemModel = new \App\Models\OrderItemModel();
 
-        $total = 0;
-        foreach ($cartItems as $item) {
-            $product = $productModel->find($item['product_id']);
-            if ($product) {
-                $total += $product['price'] * $item['quantity'];
-            }
-        }
+        $checkoutMode = $this->getCheckoutMode();
+        $summary = $this->buildOrderSummary();
+        $orderSummary = $summary['orderSummary'];
+        $total = $summary['orderTotal'];
+
         // Create order
         $orderId = $orderModel->insert([
             'user_id' => $userId,
-            'status' => 'Pending',
-            'total' => $total
+            'status'  => 'Pending',
+            'total'   => $total,
         ]);
 
         // Add order items
-        foreach ($cartItems as $item) {
-            $product = $productModel->find($item['product_id']);
-            if ($product) {
-                $orderItemModel->insert([
-                    'order_id' => $orderId,
-                    'product_id' => $item['product_id'],
-                    'quantity' => $item['quantity'],
-                    'price' => $product['price']
-                ]);
+        if ($checkoutMode === 'buyNow') {
+            $buyNowItem = $this->session->get('buyNowItem');
+            if ($buyNowItem) {
+                $product = $productModel->find($buyNowItem['product_id']);
+                if ($product) {
+                    $orderItemModel->insert([
+                        'order_id'   => $orderId,
+                        'product_id' => $buyNowItem['product_id'],
+                        'quantity'   => $buyNowItem['quantity'],
+                        'price'      => $product['price'],
+                    ]);
+                }
             }
+        } else {
+            $cartModel = new \App\Models\CartModel();
+            $cartItemModel = new \App\Models\CartItemModel();
+            $cartId = $cartModel->getOrCreateCart($userId);
+            $cartItems = $cartItemModel->getCartItems($cartId);
+
+            foreach ($cartItems as $item) {
+                $product = $productModel->find($item['product_id']);
+                if ($product) {
+                    $orderItemModel->insert([
+                        'order_id'   => $orderId,
+                        'product_id' => $item['product_id'],
+                        'quantity'   => $item['quantity'],
+                        'price'      => $product['price'],
+                    ]);
+                }
+            }
+
+            // Clear cart (database + session) so user starts fresh.
+            foreach ($cartItems as $item) {
+                $cartItemModel->removeItem($cartId, $item['product_id']);
+            }
+            $this->session->remove('cart');
         }
 
-        // Clear cart
-        foreach ($cartItems as $item) {
-            $cartItemModel->removeItem($cartId, $item['product_id']);
-        }
+        // Keep the last order details for displaying on confirmation
+        $this->session->set('lastOrderSummary', $orderSummary);
+        $this->session->set('lastOrderTotal', $total);
+        $this->session->set('lastOrderShipping', $this->session->get('shipping'));
+        $this->session->set('lastOrderPaymentMethod', $this->session->get('paymentMethod'));
+
+        // Optionally clear checkout session data (so next checkout starts clean)
+        $this->session->remove(['shipping', 'paymentMethod', 'customerInfo', 'buyNowItem', 'checkoutMode']);
 
         return redirect()->to('/confirmation')->with('success', 'Order placed successfully!');
     }
@@ -426,29 +534,19 @@ class Products extends BaseController
         $data['errors'] = $this->session->getFlashdata('errors') ?? [];
         $data['success'] = $this->session->getFlashdata('success');
 
-        // Link order summary
-        $userId = session()->get('user_id');
-        $cartModel = new \App\Models\CartModel();
-        $cartItemModel = new \App\Models\CartItemModel();
-        $cartId = $cartModel->getOrCreateCart($userId);
-        $cartItems = $cartItemModel->getCartItems($cartId);
-        $productModel = new \App\Models\ProductModel();
-        $orderSummary = [];
-        $total = 0;
-        foreach ($cartItems as $item) {
-            $product = $productModel->find($item['product_id']);
-            if ($product) {
-                $orderSummary[] = [
-                    'name' => $product['name'],
-                    'price' => $product['price'],
-                    'quantity' => $item['quantity'],
-                    'total' => $product['price'] * $item['quantity']
-                ];
-                $total += $product['price'] * $item['quantity'];
-            }
-        }
-        $data['orderSummary'] = $orderSummary;
-        $data['orderTotal'] = $total;
+        // Build order summary based on current checkout mode (cart vs buy now).
+        $data['checkoutMode'] = $this->session->get('checkoutMode') ?? 'cart';
+        $summary = $this->buildOrderSummary();
+        $data['orderSummary'] = $summary['orderSummary'];
+        $data['orderTotal']   = $summary['orderTotal'];
+        $data['subtotal']     = $summary['orderTotal'];
+
+        // Keep shipping prices available for display and calculation.
+        $data['shippingPrices'] = [
+            'standard'  => 120,
+            'express'   => 220,
+            'overnight' => 350,
+        ];
 
         return view('shipping_view', $data);
     }
@@ -479,29 +577,17 @@ class Products extends BaseController
         $data['errors'] = $this->session->getFlashdata('errors') ?? [];
         $data['success'] = $this->session->getFlashdata('success');
 
-        // Link order summary
-        $userId = session()->get('user_id');
-        $cartModel = new \App\Models\CartModel();
-        $cartItemModel = new \App\Models\CartItemModel();
-        $cartId = $cartModel->getOrCreateCart($userId);
-        $cartItems = $cartItemModel->getCartItems($cartId);
-        $productModel = new \App\Models\ProductModel();
-        $orderSummary = [];
-        $total = 0;
-        foreach ($cartItems as $item) {
-            $product = $productModel->find($item['product_id']);
-            if ($product) {
-                $orderSummary[] = [
-                    'name' => $product['name'],
-                    'price' => $product['price'],
-                    'quantity' => $item['quantity'],
-                    'total' => $product['price'] * $item['quantity']
-                ];
-                $total += $product['price'] * $item['quantity'];
-            }
-        }
-        $data['orderSummary'] = $orderSummary;
-        $data['orderTotal'] = $total;
+        // Build order summary based on current checkout mode (cart vs buy now).
+        $data['checkoutMode'] = $this->session->get('checkoutMode') ?? 'cart';
+        $summary = $this->buildOrderSummary();
+        $data['orderSummary'] = $summary['orderSummary'];
+        $data['orderTotal']   = $summary['orderTotal'];
+        $data['subtotal']     = $summary['orderTotal'];
+        $data['shippingPrices'] = [
+            'standard'  => 120,
+            'express'   => 220,
+            'overnight' => 350,
+        ];
 
         return view('payment_view', $data);
     }
@@ -509,34 +595,43 @@ class Products extends BaseController
     public function confirmation()
     {
         $data['title'] = "Order Confirmation";
-        $data['cart'] = $this->session->get('cart') ?? [];
         $data['shipping'] = $this->session->get('shipping') ?? 'standard';
         $data['errors'] = $this->session->getFlashdata('errors') ?? [];
         $data['success'] = $this->session->getFlashdata('success');
 
-        // Link order summary
-        $userId = session()->get('user_id');
-        $cartModel = new \App\Models\CartModel();
-        $cartItemModel = new \App\Models\CartItemModel();
-        $cartId = $cartModel->getOrCreateCart($userId);
-        $cartItems = $cartItemModel->getCartItems($cartId);
-        $productModel = new \App\Models\ProductModel();
-        $orderSummary = [];
-        $total = 0;
-        foreach ($cartItems as $item) {
-            $product = $productModel->find($item['product_id']);
-            if ($product) {
-                $orderSummary[] = [
-                    'name' => $product['name'],
-                    'price' => $product['price'],
-                    'quantity' => $item['quantity'],
-                    'total' => $product['price'] * $item['quantity']
-                ];
-                $total += $product['price'] * $item['quantity'];
-            }
+        // Read and save selected payment method (if submitted)
+        if ($this->request->getMethod() === 'post') {
+            $paymentMethod = $this->request->getVar('payment_method') ?? 'Cash on Delivery';
+            $this->session->set('paymentMethod', $paymentMethod);
         }
+
+        $data['paymentMethod'] = $this->session->get('paymentMethod') ?? 'Cash on Delivery';
+
+        // Load customer info from session (saved during checkout)
+        // If an order was just placed, show the stored order details.
+        $orderSummary = $this->session->get('lastOrderSummary');
+        $total = $this->session->get('lastOrderTotal');
+        $data['shipping'] = $this->session->get('lastOrderShipping') ?? $data['shipping'];
+        $data['paymentMethod'] = $this->session->get('lastOrderPaymentMethod') ?? $data['paymentMethod'];
+
+        // Otherwise, fall back to current cart or buy-now item.
+        if (empty($orderSummary)) {
+            $data['customer'] = $this->session->get('customerInfo') ?? [];
+
+            $summary = $this->buildOrderSummary();
+            $orderSummary = $summary['orderSummary'];
+            $total = $summary['orderTotal'];
+        }
+
+        $data['cart'] = $orderSummary;
         $data['orderSummary'] = $orderSummary;
         $data['orderTotal'] = $total;
+        $data['subtotal'] = $total;
+        $data['shippingPrices'] = [
+            'standard'  => 120,
+            'express'   => 220,
+            'overnight' => 350,
+        ];
 
         return view('confirmation_view', $data);
     }

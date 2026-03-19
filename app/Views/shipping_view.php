@@ -130,6 +130,18 @@
 
             <aside class="checkout-summary-card">
                 <h2>Order Summary</h2>
+
+                <?php
+                // Ensure shipping price mapping exists in PHP too.
+                $shippingPrices = $shippingPrices ?? [
+                    'standard'  => 120,
+                    'express'   => 220,
+                    'overnight' => 350,
+                ];
+
+                $shippingCost = $shippingPrices[$shipping] ?? $shippingPrices['standard'];
+                ?>
+
                 <?php if (!empty($orderSummary)): ?>
                     <div class="summary-products">
                         <?php foreach ($orderSummary as $item): ?>
@@ -142,16 +154,16 @@
                     <div class="summary-totals">
                         <div class="summary-line">
                             <span>Subtotal</span>
-                            <span>₱<?= number_format($orderTotal, 2) ?></span>
+                            <span id="summarySubtotal">₱<?= number_format($orderTotal, 2) ?></span>
                         </div>
                         <div class="summary-line">
                             <span>Shipping</span>
-                            <span>₱<?= number_format($shippingPrices[$shipping] ?? 120, 2) ?></span>
+                            <span id="summaryShipping">₱<?= number_format($shippingCost, 2) ?></span>
                         </div>
                     </div>
                     <div class="summary-grand-total">
                         <span>Total</span>
-                        <span>₱<?= number_format(($orderTotal + ($shippingPrices[$shipping] ?? 120)), 2) ?></span>
+                        <span id="summaryTotal">₱<?= number_format($orderTotal + $shippingCost, 2) ?></span>
                     </div>
                 <?php else: ?>
                     <p>Your cart is empty. <a href="<?= base_url('products') ?>">Browse products</a> to add items.</p>

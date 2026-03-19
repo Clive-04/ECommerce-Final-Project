@@ -135,11 +135,11 @@
 
                 <div class="confirmation-actions">
                     <a href="<?= base_url('payment') ?>" class="back-btn">Back</a>
-                    <button type="button" class="place-order-btn" data-bs-toggle="modal"
-                        data-bs-target="#orderSuccessModal">
-                        Place Order
-                    </button>
 
+                    <form action="<?= base_url('checkout/place') ?>" method="post" class="place-order-form">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="place-order-btn">Place Order</button>
+                    </form>
                 </div>
             </div>
 
@@ -175,21 +175,32 @@
         </div>
     </div>
 </section>
-<div class="modal fade order-success-modal" id="orderSuccessModal" tabindex="-1"
-    aria-labelledby="orderSuccessModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content order-success-content">
-            <div class="modal-body text-center">
-                <div class="success-badge">Order Confirmed</div>
-                <h2 id="orderSuccessModalLabel">Thank You for Your Purchase</h2>
-                <p>
-                    Your order has been placed successfully. We appreciate your trust in VIZIO.
-                </p>
+<?php if (! empty($success)): ?>
+    <div class="modal fade order-success-modal" id="orderSuccessModal" tabindex="-1" aria-labelledby="orderSuccessModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content order-success-content">
+                <div class="modal-body text-center">
+                    <div class="success-badge">Order Confirmed</div>
+                    <h2 id="orderSuccessModalLabel">Thank You for Your Purchase</h2>
+                    <p>
+                        Your order has been placed successfully. We appreciate your trust in VIZIO.
+                    </p>
 
-                <a href="<?= base_url('products') ?>" class="success-continue-btn">Continue Shopping</a>
+                    <a href="<?= base_url('products') ?>" class="success-continue-btn">Continue Shopping</a>
+                </div>
             </div>
         </div>
     </div>
-</div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const modalEl = document.getElementById('orderSuccessModal');
+        if (modalEl && typeof bootstrap !== 'undefined') {
+            const modal = new bootstrap.Modal(modalEl);
+            modal.show();
+        }
+    });
+    </script>
+<?php endif; ?>
 
 <?= view('include/footer') ?>

@@ -24,6 +24,7 @@ $routes->get('/shipping', 'Products::shipping');
 $routes->post('/shipping/save', 'Products::saveShipping');
 $routes->get('/payment', 'Products::payment');
 $routes->get('/confirmation', 'Products::confirmation');
+$routes->post('/confirmation', 'Products::confirmation');
 
 /* AUTH */
 $routes->get('/login', 'Auth::login');
@@ -38,3 +39,5 @@ $routes->get('/logout', 'Auth::logout');
 $routes->get('/admin', 'Admin::index');
 $routes->get('/admin/products', 'Admin::products');
 $routes->get('/admin/orders', 'Admin::orders');
+$routes->get('/admin/orders/view/(:num)', 'Admin::viewOrder/$1');
+$routes->get('/admin/orders/export/(:any)', 'Admin::exportOrders/$1');
