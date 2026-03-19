@@ -100,6 +100,7 @@
                             </tr>
                         </thead>
                         <tbody>
+<<<<<<< HEAD
                             <?php if (! empty($orders) && is_array($orders)): ?>
                                 <?php foreach ($orders as $order): ?>
                                     <?php $statusClass = strtolower(str_replace(' ', '-', $order['status'] ?? '')); ?>
@@ -123,6 +124,41 @@
                                 </tr>
                             <?php endif; ?>
                         </tbody>
+=======
+
+<?php foreach($orders as $order): ?>
+
+<tr>
+
+<td><strong>#<?= esc($order['order_number']) ?></strong></td>
+
+<td><?= esc($order['customer_name']) ?></td>
+
+<td>1 Item</td>
+
+<td>₱<?= number_format($order['total'],2) ?></td>
+
+<td>
+<span class="table-status">
+<?= esc($order['status']) ?>
+</span>
+</td>
+
+<td>
+<?= date('M d, Y', strtotime($order['order_date'])) ?>
+</td>
+
+<td class="table-actions">
+<button class="table-icon-btn"><i class="bi bi-eye"></i></button>
+<button class="table-icon-btn"><i class="bi bi-pencil"></i></button>
+</td>
+
+</tr>
+
+<?php endforeach; ?>
+
+</tbody>
+>>>>>>> 8f771997721bbd6ba4927184948de8741686c027
                     </table>
                 </div>
 

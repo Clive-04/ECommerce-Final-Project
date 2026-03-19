@@ -2,6 +2,7 @@
 
 <section class="admin-page">
     <div class="admin-layout">
+
         <!-- Sidebar -->
         <aside class="admin-sidebar">
             <div class="admin-sidebar-top">
@@ -33,8 +34,9 @@
             </div>
         </aside>
 
-        <!-- Main Content -->
+        <!-- Main -->
         <main class="admin-main">
+
             <div class="admin-topbar">
                 <div>
                     <p class="admin-kicker">Overview</p>
@@ -45,22 +47,35 @@
                 <div class="admin-user">
                     <div class="admin-user-text">
                         <span class="admin-user-label">User</span>
+<<<<<<< HEAD
                         <strong><?= esc($adminName) ?></strong>
                     </div>
                     <div class="admin-user-avatar"><?= esc(strtoupper(substr($adminName, 0, 1))) ?></div>
+=======
+                        <strong><?= session()->get('user_name') ?? 'Admin' ?></strong>
+                    </div>
+                    <div class="admin-user-avatar">
+                        <?= strtoupper(substr(session()->get('user_name') ?? 'A',0,1)) ?>
+                    </div>
+>>>>>>> 8f771997721bbd6ba4927184948de8741686c027
                 </div>
             </div>
 
             <!-- Stats -->
             <section class="admin-stats">
+
                 <div class="stat-card">
                     <div class="stat-icon revenue">
                         <i class="bi bi-cash-stack"></i>
                     </div>
                     <div>
                         <p class="stat-label">Total Revenue</p>
+<<<<<<< HEAD
                         <h3>₱<?= number_format($totalRevenue ?? 0, 2) ?></h3>
                         <span class="stat-sub">Since launch</span>
+=======
+                        <h3>₱<?= number_format($revenue ?? 0) ?></h3>
+>>>>>>> 8f771997721bbd6ba4927184948de8741686c027
                     </div>
                 </div>
 
@@ -70,8 +85,12 @@
                     </div>
                     <div>
                         <p class="stat-label">Total Orders</p>
+<<<<<<< HEAD
                         <h3><?= esc($totalOrders ?? 0) ?></h3>
                         <span class="stat-sub"><?= esc($pendingOrders ?? 0) ?> pending orders</span>
+=======
+                        <h3><?= $orders_count ?></h3>
+>>>>>>> 8f771997721bbd6ba4927184948de8741686c027
                     </div>
                 </div>
 
@@ -81,14 +100,21 @@
                     </div>
                     <div>
                         <p class="stat-label">Total Products</p>
+<<<<<<< HEAD
                         <h3><?= esc($totalProducts ?? 0) ?></h3>
                         <span class="stat-sub"><?= esc($lowStockCount ?? 0) ?> low stock items</span>
+=======
+                        <h3><?= $products_count ?></h3>
+>>>>>>> 8f771997721bbd6ba4927184948de8741686c027
                     </div>
                 </div>
+
             </section>
 
-            <!-- Mid Content -->
+            <!-- Mid -->
             <section class="admin-grid-two">
+
+                <!-- Recent Orders -->
                 <div class="admin-panel-card tall-card">
                     <div class="panel-header">
                         <h3>Recent Orders</h3>
@@ -96,6 +122,7 @@
                     </div>
 
                     <div class="order-list">
+<<<<<<< HEAD
                         <?php if (! empty($recentOrders) && is_array($recentOrders)): ?>
                             <?php foreach ($recentOrders as $order): ?>
                                 <?php $statusClass = strtolower(str_replace(' ', '-', $order['status'] ?? '')); ?>
@@ -114,9 +141,28 @@
                                 </div>
                             </div>
                         <?php endif; ?>
+=======
+
+                        <?php foreach($recent_orders as $order): ?>
+
+                        <div class="order-item">
+                            <div>
+                                <strong>#<?= esc($order['order_number']) ?></strong>
+                                <p><?= esc($order['customer_name']) ?></p>
+                            </div>
+
+                            <span class="status-pill">
+                                <?= esc($order['status']) ?>
+                            </span>
+                        </div>
+
+                        <?php endforeach; ?>
+
+>>>>>>> 8f771997721bbd6ba4927184948de8741686c027
                     </div>
                 </div>
 
+                <!-- Top Products -->
                 <div class="admin-panel-card tall-card">
                     <div class="panel-header">
                         <h3>Top Products</h3>
@@ -124,6 +170,7 @@
                     </div>
 
                     <div class="product-rank-list">
+<<<<<<< HEAD
                         <?php if (! empty($topProducts) && is_array($topProducts)): ?>
                             <?php foreach ($topProducts as $index => $product): ?>
                                 <div class="rank-item">
@@ -143,40 +190,29 @@
                                 </div>
                             </div>
                         <?php endif; ?>
+=======
+
+                        <?php $rank=1; foreach($products as $product): ?>
+
+                        <div class="rank-item">
+                            <span class="rank-number">
+                                <?= str_pad($rank,2,'0',STR_PAD_LEFT) ?>
+                            </span>
+
+                            <div>
+                                <strong><?= esc($product['name']) ?></strong>
+                                <p>Stock: <?= $product['stock'] ?></p>
+                            </div>
+                        </div>
+
+                        <?php $rank++; endforeach; ?>
+
+>>>>>>> 8f771997721bbd6ba4927184948de8741686c027
                     </div>
                 </div>
+
             </section>
 
-            <!-- Bottom Content -->
-            <section class="admin-grid-bottom">
-                <div class="admin-panel-card sales-card">
-                    <div class="panel-header">
-                        <h3>Sales Overview</h3>
-                        <a href="#">Details</a>
-                    </div>
-
-                    <div class="sales-placeholder">
-                        <div class="sales-bars">
-                            <div class="bar" style="height: 48%;"></div>
-                            <div class="bar" style="height: 68%;"></div>
-                            <div class="bar" style="height: 55%;"></div>
-                            <div class="bar" style="height: 82%;"></div>
-                            <div class="bar" style="height: 74%;"></div>
-                            <div class="bar" style="height: 92%;"></div>
-                            <div class="bar" style="height: 64%;"></div>
-                        </div>
-                        <div class="sales-labels">
-                            <span>Mon</span>
-                            <span>Tue</span>
-                            <span>Wed</span>
-                            <span>Thu</span>
-                            <span>Fri</span>
-                            <span>Sat</span>
-                            <span>Sun</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
         </main>
     </div>
 </section>
