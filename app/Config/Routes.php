@@ -94,3 +94,7 @@ $routes->get('/admin/products/delete/(:num)', 'Admin::deleteProduct/$1');
 /* ORDERS MANAGEMENT */
 
 $routes->get('/admin/orders', 'Admin::orders');
+
+/* ABOUT */
+
+$routes->get('/about', 'About::index');
