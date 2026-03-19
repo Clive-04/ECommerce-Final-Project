@@ -2,7 +2,6 @@
 
 <section class="admin-page">
     <div class="admin-layout">
-
         <!-- Sidebar -->
         <aside class="admin-sidebar">
             <div class="admin-sidebar-top">
@@ -27,7 +26,7 @@
             </div>
 
             <div class="admin-sidebar-bottom">
-                <a href="<?= base_url('/logout') ?>" class="admin-nav-link logout-link">
+                <a href="#" class="admin-nav-link logout-link">
                     <i class="bi bi-box-arrow-left"></i>
                     <span>Logout</span>
                 </a>
@@ -36,7 +35,6 @@
 
         <!-- Main -->
         <main class="admin-main">
-
             <div class="admin-topbar">
                 <div>
                     <p class="admin-kicker">Management</p>
@@ -52,142 +50,205 @@
                 </div>
             </div>
 
-            <!-- Toolbar -->
+            <!-- Action Row -->
             <section class="admin-products-toolbar">
                 <div class="admin-search-box">
                     <i class="bi bi-search"></i>
-                    <input type="text" placeholder="Search products">
+                    <input type="text" placeholder="Search products, category, or stock status">
                 </div>
 
-                <button class="admin-primary-btn" data-bs-toggle="modal" data-bs-target="#addProductModal">
-                    <i class="bi bi-plus-lg"></i> Add Product
-                </button>
+                <div class="admin-toolbar-actions">
+                    <button class="admin-outline-btn">
+                        <i class="bi bi-funnel"></i>
+                        Filter
+                    </button>
+
+                    <button class="admin-primary-btn" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                        <i class="bi bi-plus-lg"></i>
+                        Add Product
+                    </button>
+                </div>
             </section>
 
-            <!-- Table -->
+            <!-- Table Card -->
             <section class="admin-panel-card product-table-card">
+                <div class="panel-header">
+                    <div>
+                        <h3>Product Inventory</h3>
+                        <p class="panel-subtext">Manage your listed accessories and stock levels.</p>
+                    </div>
+
+                    <span class="table-count-badge">48 Products</span>
+                </div>
+
                 <div class="products-table-wrapper">
-
                     <table class="products-table">
-
                         <thead>
                             <tr>
-                                <th>Image</th>
                                 <th>Product</th>
                                 <th>Category</th>
                                 <th>Price</th>
                                 <th>Stock</th>
                                 <th>Status</th>
-                                <th>Actions</th>
+                                <th class="actions-col">Actions</th>
                             </tr>
                         </thead>
-
                         <tbody>
-                            <?php foreach ($products as $product): ?>
-                                <tr>
+                            <tr>
+                                <td>
+                                    <div class="product-cell">
+                                        <div class="product-thumb thumb-blue"></div>
+                                        <div>
+                                            <strong>Wireless Earbuds Pro</strong>
+                                            <p>SKU: VZ-1001</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>Audio</td>
+                                <td>₱2,499</td>
+                                <td>124</td>
+                                <td><span class="table-status in-stock">In Stock</span></td>
+                                <td class="table-actions">
+                                    <button class="table-icon-btn"><i class="bi bi-pencil"></i></button>
+                                    <button class="table-icon-btn danger"><i class="bi bi-trash"></i></button>
+                                    <button class="table-icon-btn"><i class="bi bi-three-dots-vertical"></i></button>
+                                </td>
+                            </tr>
 
-                                    <td>
-                                        <?php if ($product['image']): ?>
-                                            <img src="<?= base_url($product['image']) ?>" width="50">
-                                        <?php endif; ?>
-                                    </td>
+                            <tr>
+                                <td>
+                                    <div class="product-cell">
+                                        <div class="product-thumb thumb-orange"></div>
+                                        <div>
+                                            <strong>Portable Charger Max</strong>
+                                            <p>SKU: VZ-1002</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>Power</td>
+                                <td>₱1,899</td>
+                                <td>18</td>
+                                <td><span class="table-status low-stock">Low Stock</span></td>
+                                <td class="table-actions">
+                                    <button class="table-icon-btn"><i class="bi bi-pencil"></i></button>
+                                    <button class="table-icon-btn danger"><i class="bi bi-trash"></i></button>
+                                    <button class="table-icon-btn"><i class="bi bi-three-dots-vertical"></i></button>
+                                </td>
+                            </tr>
 
-                                    <td>
-                                        <strong><?= esc($product['name']) ?></strong>
-                                        <p>SKU: <?= esc($product['sku']) ?></p>
-                                    </td>
+                            <tr>
+                                <td>
+                                    <div class="product-cell">
+                                        <div class="product-thumb thumb-green"></div>
+                                        <div>
+                                            <strong>USB-C Fast Charger</strong>
+                                            <p>SKU: VZ-1003</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>Chargers</td>
+                                <td>₱999</td>
+                                <td>0</td>
+                                <td><span class="table-status out-stock">Out of Stock</span></td>
+                                <td class="table-actions">
+                                    <button class="table-icon-btn"><i class="bi bi-pencil"></i></button>
+                                    <button class="table-icon-btn danger"><i class="bi bi-trash"></i></button>
+                                    <button class="table-icon-btn"><i class="bi bi-three-dots-vertical"></i></button>
+                                </td>
+                            </tr>
 
-                                    <td><?= esc($product['category']) ?></td>
-                                    <td>₱<?= number_format($product['price'], 2) ?></td>
-                                    <td><?= $product['stock'] ?></td>
-
-                                    <td>
-                                        <span class="table-status"><?= esc($product['status']) ?></span>
-                                    </td>
-
-                                    <td>
-                                        <button 
-                                            class="table-icon-btn"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#editProductModal"
-                                            onclick="editProduct(
-                                                '<?= $product['id'] ?>',
-                                                '<?= esc($product['name']) ?>',
-                                                '<?= esc($product['sku']) ?>',
-                                                '<?= esc($product['brand']) ?>',
-                                                '<?= esc($product['category']) ?>',
-                                                '<?= $product['price'] ?>',
-                                                '<?= $product['stock'] ?>',
-                                                '<?= esc($product['status']) ?>',
-                                                `<?= esc($product['description']) ?>`
-                                            )">
-                                            <i class="bi bi-pencil"></i>
-                                        </button>
-
-                                        <a 
-                                            href="<?= base_url('/admin/products/delete/' . $product['id']) ?>"
-                                            onclick="return confirm('Delete this product?')"
-                                            class="table-icon-btn danger">
-                                            <i class="bi bi-trash"></i>
-                                        </a>
-                                    </td>
-
-                                </tr>
-                            <?php endforeach; ?>
+                            <tr>
+                                <td>
+                                    <div class="product-cell">
+                                        <div class="product-thumb thumb-purple"></div>
+                                        <div>
+                                            <strong>Mechanical Keyboard Lite</strong>
+                                            <p>SKU: VZ-1004</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>Accessories</td>
+                                <td>₱3,299</td>
+                                <td>54</td>
+                                <td><span class="table-status in-stock">In Stock</span></td>
+                                <td class="table-actions">
+                                    <button class="table-icon-btn"><i class="bi bi-pencil"></i></button>
+                                    <button class="table-icon-btn danger"><i class="bi bi-trash"></i></button>
+                                    <button class="table-icon-btn"><i class="bi bi-three-dots-vertical"></i></button>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
+                </div>
 
+                <div class="table-footer">
+                    <p>Showing 1–4 of 48 products</p>
+
+                    <div class="pagination-wrap">
+                        <button class="pagination-btn">Previous</button>
+                        <button class="pagination-btn active">1</button>
+                        <button class="pagination-btn">2</button>
+                        <button class="pagination-btn">3</button>
+                        <button class="pagination-btn">Next</button>
+                    </div>
                 </div>
             </section>
-
         </main>
     </div>
 
-    <!-- ADD PRODUCT MODAL -->
-    <div class="modal fade" id="addProductModal">
-        <div class="modal-dialog modal-lg">
+    <div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content admin-modal-content">
-
                 <div class="modal-header admin-modal-header">
-                    <h5>Add Product</h5>
+                    <div>
+                        <h5 class="modal-title" id="addProductModalLabel">Add Product</h5>
+                        <p class="admin-modal-subtext">Enter the product details below.</p>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
 
                 <div class="modal-body admin-modal-body">
-                    <form action="<?= base_url('/admin/products/store') ?>" method="post" enctype="multipart/form-data" class="admin-product-form">
-
+                    <form action="#" method="post" class="admin-product-form">
                         <div class="admin-form-grid">
                             <div class="admin-form-group">
-                                <label>Product Name</label>
-                                <input type="text" name="name">
+                                <label for="product_name">Product Name</label>
+                                <input type="text" id="product_name" name="product_name" placeholder="Enter product name">
                             </div>
 
                             <div class="admin-form-group">
-                                <label>Category</label>
-                                <input type="text" name="category">
+                                <label for="category">Category</label>
+                                <select id="category" name="category">
+                                    <option value="">Select category</option>
+                                    <option>Headphones</option>
+                                    <option>Power Banks</option>
+                                    <option>Phone Cases</option>
+                                    <option>Earbuds</option>
+                                </select>
                             </div>
                         </div>
 
                         <div class="admin-form-grid">
                             <div class="admin-form-group">
-                                <label>Price</label>
-                                <input type="number" name="price">
+                                <label for="price">Price</label>
+                                <input type="number" id="price" name="price" placeholder="Enter price">
                             </div>
 
                             <div class="admin-form-group">
-                                <label>Stock</label>
-                                <input type="number" name="stock">
+                                <label for="stock">Stock</label>
+                                <input type="number" id="stock" name="stock" placeholder="Enter stock quantity">
                             </div>
                         </div>
 
                         <div class="admin-form-grid">
                             <div class="admin-form-group">
-                                <label>Brand</label>
-                                <input type="text" name="brand">
+                                <label for="brand">Brand</label>
+                                <input type="text" id="brand" name="brand" placeholder="Enter brand name">
                             </div>
 
                             <div class="admin-form-group">
-                                <label>Status</label>
-                                <select name="status">
+                                <label for="status">Status</label>
+                                <select id="status" name="status">
+                                    <option value="">Select status</option>
                                     <option>In Stock</option>
                                     <option>Low Stock</option>
                                     <option>Out of Stock</option>
@@ -196,125 +257,24 @@
                         </div>
 
                         <div class="admin-form-group">
-                            <label>Description</label>
-                            <textarea name="description"></textarea>
+                            <label for="description">Description</label>
+                            <textarea id="description" name="description" rows="4" placeholder="Enter product description"></textarea>
                         </div>
 
-                        <div class="admin-form-group">
-                            <label>SKU</label>
-                            <input type="text" name="sku">
+                        <div class="admin-form-grid">
+                            <div class="admin-form-group">
+                                <label for="product_image">Product Image</label>
+                                <input type="file" id="product_image" name="product_image">
+                            </div>
                         </div>
-
-                        <div class="admin-form-group">
-                            <label>Product Image</label>
-                            <input type="file" name="image">
-                        </div>
-
-                        <div class="modal-footer admin-modal-footer">
-                            <button type="submit" class="admin-primary-btn">Save</button>
-                        </div>
-
                     </form>
                 </div>
 
+                <div class="modal-footer admin-modal-footer">
+                    <button type="button" class="admin-outline-btn" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="admin-primary-btn">Save Product</button>
+                </div>
             </div>
         </div>
     </div>
-
-    <!-- EDIT PRODUCT MODAL -->
-    <div class="modal fade" id="editProductModal">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content admin-modal-content">
-
-                <div class="modal-header admin-modal-header">
-                    <h5>Edit Product</h5>
-                </div>
-
-                <div class="modal-body admin-modal-body">
-                    <form id="editForm" method="post" enctype="multipart/form-data" class="admin-product-form">
-
-                        <input type="hidden" id="edit_id" name="id">
-
-                        <div class="admin-form-grid">
-                            <div class="admin-form-group">
-                                <label>Product Name</label>
-                                <input type="text" id="edit_name" name="name">
-                            </div>
-
-                            <div class="admin-form-group">
-                                <label>Category</label>
-                                <input type="text" id="edit_category" name="category">
-                            </div>
-                        </div>
-
-                        <div class="admin-form-grid">
-                            <div class="admin-form-group">
-                                <label>Price</label>
-                                <input type="number" id="edit_price" name="price">
-                            </div>
-
-                            <div class="admin-form-group">
-                                <label>Stock</label>
-                                <input type="number" id="edit_stock" name="stock">
-                            </div>
-                        </div>
-
-                        <div class="admin-form-grid">
-                            <div class="admin-form-group">
-                                <label>Brand</label>
-                                <input type="text" id="edit_brand" name="brand">
-                            </div>
-
-                            <div class="admin-form-group">
-                                <label>Status</label>
-                                <select id="edit_status" name="status">
-                                    <option>In Stock</option>
-                                    <option>Low Stock</option>
-                                    <option>Out of Stock</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="admin-form-group">
-                            <label>Description</label>
-                            <textarea id="edit_description" name="description"></textarea>
-                        </div>
-
-                        <div class="admin-form-group">
-                            <label>SKU</label>
-                            <input type="text" id="edit_sku" name="sku">
-                        </div>
-
-                        <div class="admin-form-group">
-                            <label>Product Image</label>
-                            <input type="file" name="image">
-                        </div>
-
-                        <div class="modal-footer admin-modal-footer">
-                            <button type="submit" class="admin-primary-btn">Update</button>
-                        </div>
-
-                    </form>
-                </div>
-
-            </div>
-        </div>
-    </div>
-
 </section>
-
-<script>
-    function editProduct(id, name, sku, brand, category, price, stock, status, description) {
-        document.getElementById('edit_id').value = id;
-        document.getElementById('edit_name').value = name;
-        document.getElementById('edit_sku').value = sku;
-        document.getElementById('edit_brand').value = brand;
-        document.getElementById('edit_category').value = category;
-        document.getElementById('edit_price').value = price;
-        document.getElementById('edit_stock').value = stock;
-        document.getElementById('edit_status').value = status;
-        document.getElementById('edit_description').value = description;
-
-        document.getElementById('editForm').action = "<?= base_url('/admin/products/update') ?>/" + id;
-    }
-</script>
