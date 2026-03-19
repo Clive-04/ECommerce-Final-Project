@@ -83,18 +83,25 @@ $routes->get('/admin', 'Admin::index');
 /* PRODUCTS MANAGEMENT */
 
 $routes->get('/admin/products', 'Admin::products');
+<<<<<<< HEAD
+=======
+$routes->get('/admin/orders', 'Admin::orders');
+/* ADMIN */
+$routes->get('/admin', 'Admin::index');
+>>>>>>> 5c85549d85a554f62712c5a53438f80f9ee32c58
 
+$routes->get('/admin/products', 'Admin::products');
+
+/* PRODUCT CRUD */
 $routes->post('/admin/products/store', 'Admin::storeProduct');
-
 $routes->post('/admin/products/update/(:num)', 'Admin::updateProduct/$1');
-
 $routes->get('/admin/products/delete/(:num)', 'Admin::deleteProduct/$1');
 
-
-/* ORDERS MANAGEMENT */
-
 $routes->get('/admin/orders', 'Admin::orders');
+<<<<<<< HEAD
 
 /* ABOUT */
 
 $routes->get('/about', 'About::index');
+=======
+>>>>>>> 5c85549d85a554f62712c5a53438f80f9ee32c58
