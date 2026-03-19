@@ -10,9 +10,16 @@ class Products extends BaseController
     protected $productModel;
     protected $customerInfoModel;
     protected $session;
+    /**
+     * Instance of the main Request object.
+     *
+     * @var \CodeIgniter\HTTP\IncomingRequest
+     */
+    protected $request;
 
     public function __construct()
     {
+        $this->request = service('request'); // Returns IncomingRequest
         $this->productModel = new ProductModel();
         $this->customerInfoModel = new CustomerInformationModel();
         $this->session = session();
@@ -23,7 +30,7 @@ class Products extends BaseController
         $data['title'] = "Product Catalog";
 
         // Filter by category query param (e.g. /products?category=Headphones)
-        $category = $this->request->getGet('category');
+        $category = $this->request->getVar('category');
         $normalized = $category ? strtolower(preg_replace('/\s+/', '', $category)) : '';
 
         // Map normalized values to the user-facing label (used for active button state)
@@ -52,7 +59,7 @@ class Products extends BaseController
 
     public function details()
     {
-        $id = $this->request->getGet('id');
+        $id = $this->request->getVar('id');
 
         if ($id) {
             $product = $this->productModel->find($id);
@@ -113,26 +120,42 @@ class Products extends BaseController
 
     public function addToCart()
     {
-        $id = $this->request->getPost('id');
-        $quantity = (int) $this->request->getPost('quantity');
+        $id = $this->request->getVar('id');
+        $quantity = (int) $this->request->getVar('quantity');
+
+        if (!session()->get('logged_in')) {
+            return redirect()->to('/login')->with('error', 'Please log in to add items to your cart.');
+        }
 
         if (! $id) {
             return redirect()->back()->with('error', 'Invalid product.');
         }
 
-        $result = $this->addProductToCart((int) $id, $quantity);
-        if (! $result['success']) {
-            return redirect()->back()->with('error', $result['message']);
+        $product = $this->productModel->find($id);
+        if (! $product) {
+            return redirect()->back()->with('error', 'Product not found.');
+        }
+        if ($product['stock'] < $quantity) {
+            return redirect()->back()->with('error', 'Not enough stock for the requested quantity.');
         }
 
-        // Return to the previous page (usually product listing) rather than forcing a cart redirect.
-        return redirect()->back()->with('success', $result['message']);
+        // Deduct stock in database
+        $this->productModel->update($id, ['stock' => $product['stock'] - $quantity]);
+
+        // Store cart item in DB
+        $userId = session()->get('user_id');
+        $cartModel = new \App\Models\CartModel();
+        $cartItemModel = new \App\Models\CartItemModel();
+        $cartId = $cartModel->getOrCreateCart($userId);
+        $cartItemModel->addItem($cartId, $id, $quantity);
+
+        return redirect()->back()->with('success', 'Added to cart.');
     }
 
     public function buyNow()
     {
-        $id = $this->request->getPost('id');
-        $quantity = (int) $this->request->getPost('quantity');
+        $id = $this->request->getVar('id');
+        $quantity = (int) $this->request->getVar('quantity');
 
         if (! $id) {
             return redirect()->back()->with('error', 'Invalid product.');
@@ -148,81 +171,115 @@ class Products extends BaseController
 
     public function cart()
     {
+        // Require login
+        if (!session()->get('logged_in')) {
+            return redirect()->to('/login')->with('error', 'Please log in to view your cart.');
+        }
+
         $data['title'] = "Shopping Cart";
-        $data['cart'] = $this->session->get('cart') ?? [];
+
+        // Get user cart from DB
+        $userId = session()->get('user_id');
+        $cartModel = new \App\Models\CartModel();
+        $cartItemModel = new \App\Models\CartItemModel();
+        $cartId = $cartModel->getOrCreateCart($userId);
+        $cartItems = $cartItemModel->getCartItems($cartId);
+
+        // Fetch product details for each cart item
+        $productModel = new \App\Models\ProductModel();
+        $cart = [];
+        foreach ($cartItems as $item) {
+            $product = $productModel->find($item['product_id']);
+            if ($product) {
+                $cart[] = [
+                    'id' => $product['id'],
+                    'name' => $product['name'],
+                    'price' => $product['price'],
+                    'image' => $product['image'],
+                    'quantity' => $item['quantity'],
+                    'total' => $product['price'] * $item['quantity']
+                ];
+            }
+        }
+        $data['cart'] = $cart;
 
         return view('cart_view', $data);
     }
 
     public function updateCart()
     {
-        $id = $this->request->getPost('id');
-        $newQuantity = (int) $this->request->getPost('quantity');
+        $id = $this->request->getVar('id');
+        $newQuantity = (int) $this->request->getVar('quantity');
 
+        if (!session()->get('logged_in')) {
+            return redirect()->to('/login')->with('error', 'Please log in to update your cart.');
+        }
         if (! $id) {
             return redirect()->back()->with('error', 'Invalid product.');
         }
 
-        $cart = $this->session->get('cart') ?? [];
-        if (! isset($cart[$id])) {
+        $userId = session()->get('user_id');
+        $cartModel = new \App\Models\CartModel();
+        $cartItemModel = new \App\Models\CartItemModel();
+        $cartId = $cartModel->getOrCreateCart($userId);
+        $item = $cartItemModel->where(['cart_id' => $cartId, 'product_id' => $id])->first();
+        if (! $item) {
             return redirect()->back()->with('error', 'Product not found in your cart.');
         }
-
-        $oldQuantity = $cart[$id]['quantity'];
-
+        $oldQuantity = $item['quantity'];
         if ($newQuantity <= 0) {
-            return $this->removeFromCart();
+            // Remove item
+            $cartItemModel->removeItem($cartId, $id);
+            // Return quantity to stock
+            $product = $this->productModel->find($id);
+            if ($product) {
+                $this->productModel->update($id, ['stock' => $product['stock'] + $oldQuantity]);
+            }
+            return redirect()->back()->with('success', 'Product removed from cart.');
         }
-
         $delta = $newQuantity - $oldQuantity;
         if ($delta === 0) {
             return redirect()->back()->with('success', 'Quantity unchanged.');
         }
-
         $product = $this->productModel->find($id);
         if (! $product) {
             return redirect()->back()->with('error', 'Product no longer exists.');
         }
-
-        // If increasing quantity, make sure stock is available
         if ($delta > 0 && $product['stock'] < $delta) {
             return redirect()->back()->with('error', 'Not enough stock to increase quantity.');
         }
-
-        // Adjust stock based on quantity delta
+        // Adjust stock
         $this->productModel->update($id, ['stock' => $product['stock'] - $delta]);
-
-        $cart[$id]['quantity'] = $newQuantity;
-        $cart[$id]['total'] = $newQuantity * $cart[$id]['price'];
-        $this->session->set('cart', $cart);
-
+        $cartItemModel->updateItem($cartId, $id, $newQuantity);
         return redirect()->back()->with('success', 'Cart updated.');
     }
 
     public function removeFromCart()
     {
-        $id = $this->request->getPost('id');
+        $id = $this->request->getVar('id');
 
+        if (!session()->get('logged_in')) {
+            return redirect()->to('/login')->with('error', 'Please log in to update your cart.');
+        }
         if (! $id) {
             return redirect()->back()->with('error', 'Invalid product.');
         }
 
-        $cart = $this->session->get('cart') ?? [];
-        if (! isset($cart[$id])) {
+        $userId = session()->get('user_id');
+        $cartModel = new \App\Models\CartModel();
+        $cartItemModel = new \App\Models\CartItemModel();
+        $cartId = $cartModel->getOrCreateCart($userId);
+        $item = $cartItemModel->where(['cart_id' => $cartId, 'product_id' => $id])->first();
+        if (! $item) {
             return redirect()->back()->with('error', 'Product not found in your cart.');
         }
-
-        $quantity = $cart[$id]['quantity'];
-
-        // Return quantity back to stock
+        $quantity = $item['quantity'];
+        // Return quantity to stock
         $product = $this->productModel->find($id);
         if ($product) {
             $this->productModel->update($id, ['stock' => $product['stock'] + $quantity]);
         }
-
-        unset($cart[$id]);
-        $this->session->set('cart', $cart);
-
+        $cartItemModel->removeItem($cartId, $id);
         return redirect()->back()->with('success', 'Product removed from cart.');
     }
 
@@ -233,7 +290,85 @@ class Products extends BaseController
         $data['errors'] = $this->session->getFlashdata('errors') ?? [];
         $data['success'] = $this->session->getFlashdata('success');
 
+        // Get cart items for user
+        if (!session()->get('logged_in')) {
+            return redirect()->to('/login')->with('error', 'Please log in to checkout.');
+        }
+        $userId = session()->get('user_id');
+        $cartModel = new \App\Models\CartModel();
+        $cartItemModel = new \App\Models\CartItemModel();
+        $cartId = $cartModel->getOrCreateCart($userId);
+        $cartItems = $cartItemModel->getCartItems($cartId);
+
+        $productModel = new \App\Models\ProductModel();
+        $orderSummary = [];
+        $total = 0;
+        foreach ($cartItems as $item) {
+            $product = $productModel->find($item['product_id']);
+            if ($product) {
+                $orderSummary[] = [
+                    'name' => $product['name'],
+                    'price' => $product['price'],
+                    'quantity' => $item['quantity'],
+                    'total' => $product['price'] * $item['quantity']
+                ];
+                $total += $product['price'] * $item['quantity'];
+            }
+        }
+        $data['orderSummary'] = $orderSummary;
+        $data['orderTotal'] = $total;
+
         return view('checkout_view', $data);
+    }
+
+    // Place order logic
+    public function placeOrder()
+    {
+        if (!session()->get('logged_in')) {
+            return redirect()->to('/login')->with('error', 'Please log in to place your order.');
+        }
+        $userId = session()->get('user_id');
+        $cartModel = new \App\Models\CartModel();
+        $cartItemModel = new \App\Models\CartItemModel();
+        $cartId = $cartModel->getOrCreateCart($userId);
+        $cartItems = $cartItemModel->getCartItems($cartId);
+        $productModel = new \App\Models\ProductModel();
+        $orderModel = new \App\Models\OrderModel();
+        $orderItemModel = new \App\Models\OrderItemModel();
+
+        $total = 0;
+        foreach ($cartItems as $item) {
+            $product = $productModel->find($item['product_id']);
+            if ($product) {
+                $total += $product['price'] * $item['quantity'];
+            }
+        }
+        // Create order
+        $orderId = $orderModel->insert([
+            'user_id' => $userId,
+            'status' => 'Pending',
+            'total' => $total
+        ]);
+
+        // Add order items
+        foreach ($cartItems as $item) {
+            $product = $productModel->find($item['product_id']);
+            if ($product) {
+                $orderItemModel->insert([
+                    'order_id' => $orderId,
+                    'product_id' => $item['product_id'],
+                    'quantity' => $item['quantity'],
+                    'price' => $product['price']
+                ]);
+            }
+        }
+
+        // Clear cart
+        foreach ($cartItems as $item) {
+            $cartItemModel->removeItem($cartId, $item['product_id']);
+        }
+
+        return redirect()->to('/confirmation')->with('success', 'Order placed successfully!');
     }
 
     public function saveCustomerInfo()
@@ -255,7 +390,7 @@ class Products extends BaseController
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
-        $payload = $this->request->getPost([
+        $payload = $this->request->getVar([
             'first_name',
             'last_name',
             'email',
@@ -291,6 +426,30 @@ class Products extends BaseController
         $data['errors'] = $this->session->getFlashdata('errors') ?? [];
         $data['success'] = $this->session->getFlashdata('success');
 
+        // Link order summary
+        $userId = session()->get('user_id');
+        $cartModel = new \App\Models\CartModel();
+        $cartItemModel = new \App\Models\CartItemModel();
+        $cartId = $cartModel->getOrCreateCart($userId);
+        $cartItems = $cartItemModel->getCartItems($cartId);
+        $productModel = new \App\Models\ProductModel();
+        $orderSummary = [];
+        $total = 0;
+        foreach ($cartItems as $item) {
+            $product = $productModel->find($item['product_id']);
+            if ($product) {
+                $orderSummary[] = [
+                    'name' => $product['name'],
+                    'price' => $product['price'],
+                    'quantity' => $item['quantity'],
+                    'total' => $product['price'] * $item['quantity']
+                ];
+                $total += $product['price'] * $item['quantity'];
+            }
+        }
+        $data['orderSummary'] = $orderSummary;
+        $data['orderTotal'] = $total;
+
         return view('shipping_view', $data);
     }
 
@@ -302,7 +461,7 @@ class Products extends BaseController
             'overnight' => 350,
         ];
 
-        $shipping = $this->request->getPost('shipping_method');
+        $shipping = $this->request->getVar('shipping_method');
         if (! isset($shippingOptions[$shipping])) {
             return redirect()->back()->with('errors', ['Please select a valid shipping option.']);
         }
@@ -317,17 +476,67 @@ class Products extends BaseController
         $data['title'] = "Payment";
         $data['cart'] = $this->session->get('cart') ?? [];
         $data['shipping'] = $this->session->get('shipping') ?? 'standard';
+        $data['errors'] = $this->session->getFlashdata('errors') ?? [];
+        $data['success'] = $this->session->getFlashdata('success');
+
+        // Link order summary
+        $userId = session()->get('user_id');
+        $cartModel = new \App\Models\CartModel();
+        $cartItemModel = new \App\Models\CartItemModel();
+        $cartId = $cartModel->getOrCreateCart($userId);
+        $cartItems = $cartItemModel->getCartItems($cartId);
+        $productModel = new \App\Models\ProductModel();
+        $orderSummary = [];
+        $total = 0;
+        foreach ($cartItems as $item) {
+            $product = $productModel->find($item['product_id']);
+            if ($product) {
+                $orderSummary[] = [
+                    'name' => $product['name'],
+                    'price' => $product['price'],
+                    'quantity' => $item['quantity'],
+                    'total' => $product['price'] * $item['quantity']
+                ];
+                $total += $product['price'] * $item['quantity'];
+            }
+        }
+        $data['orderSummary'] = $orderSummary;
+        $data['orderTotal'] = $total;
 
         return view('payment_view', $data);
     }
 
     public function confirmation()
     {
-        $data['title'] = "Confirmation";
+        $data['title'] = "Order Confirmation";
         $data['cart'] = $this->session->get('cart') ?? [];
         $data['shipping'] = $this->session->get('shipping') ?? 'standard';
-        $data['customer'] = $this->session->get('customerInfo') ?? [];
-        $data['paymentMethod'] = $this->session->get('paymentMethod') ?? 'Cash on Delivery';
+        $data['errors'] = $this->session->getFlashdata('errors') ?? [];
+        $data['success'] = $this->session->getFlashdata('success');
+
+        // Link order summary
+        $userId = session()->get('user_id');
+        $cartModel = new \App\Models\CartModel();
+        $cartItemModel = new \App\Models\CartItemModel();
+        $cartId = $cartModel->getOrCreateCart($userId);
+        $cartItems = $cartItemModel->getCartItems($cartId);
+        $productModel = new \App\Models\ProductModel();
+        $orderSummary = [];
+        $total = 0;
+        foreach ($cartItems as $item) {
+            $product = $productModel->find($item['product_id']);
+            if ($product) {
+                $orderSummary[] = [
+                    'name' => $product['name'],
+                    'price' => $product['price'],
+                    'quantity' => $item['quantity'],
+                    'total' => $product['price'] * $item['quantity']
+                ];
+                $total += $product['price'] * $item['quantity'];
+            }
+        }
+        $data['orderSummary'] = $orderSummary;
+        $data['orderTotal'] = $total;
 
         return view('confirmation_view', $data);
     }

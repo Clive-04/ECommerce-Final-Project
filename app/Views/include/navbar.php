@@ -47,11 +47,11 @@
 
                 <?php if(session()->get('logged_in')): ?>
 
-                    <span class="user-name">
+                    <span class="user-name" style="color: #fff;">
                         Hello, <?= session()->get('user_name') ?>
                     </span>
 
-                    <a href="<?= base_url('/logout') ?>" class="login-btn">
+                    <a href="<?= base_url('/logout') ?>" class="login-btn logout-btn">
                         Logout
                     </a>
 

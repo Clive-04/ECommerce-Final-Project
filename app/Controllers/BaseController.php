@@ -12,7 +12,7 @@ abstract class BaseController extends Controller
     /**
      * Instance of the main Request object.
      *
-     * @var RequestInterface
+     * @var \CodeIgniter\HTTP\IncomingRequest
      */
     protected $request;
 
