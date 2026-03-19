@@ -8,54 +8,61 @@ class Admin extends BaseController
     {
         $role = strtolower(session()->get('role') ?? '');
         if (! session()->get('logged_in') || $role !== 'admin') {
-            header("Location: /login");
+            header('Location: /login');
             exit;
         }
     }
 
     public function index()
     {
-        $data['title'] = "VIZIO Admin";
+        $data['title'] = 'VIZIO Admin';
         $data['adminName'] = session()->get('user_name') ?? 'Admin';
 
-        // Dashboard stats
         $orderModel = new \App\Models\OrderModel();
         $productModel = new \App\Models\ProductModel();
         $orderItemModel = new \App\Models\OrderItemModel();
 
+        // Dashboard stats
         $totalRevenueRow = $orderModel->selectSum('total')->first();
         $data['totalRevenue'] = (float) ($totalRevenueRow['total'] ?? 0);
 
-        $orderCountModel = new \App\Models\OrderModel();
-        $data['totalOrders'] = $orderCountModel->countAllResults();
-        $data['pendingOrders'] = $orderCountModel->where('status', 'Pending')->countAllResults();
+        $data['totalOrders'] = (new \App\Models\OrderModel())->countAllResults();
+        $data['pendingOrders'] = (new \App\Models\OrderModel())
+            ->where('status', 'Pending')
+            ->countAllResults();
         $data['totalProducts'] = $productModel->countAllResults();
+        $data['lowStockCount'] = (new \App\Models\ProductModel())
+            ->where('stock <', 10)
+            ->countAllResults();
 
-        // Low stock items (product stock < 10)
-        $lowStockModel = new \App\Models\ProductModel();
-        $data['lowStockCount'] = $lowStockModel->where('stock <', 10)->countAllResults();
+        // Recent orders
+        $recentOrders = (new \App\Models\OrderModel())
+            ->orderBy('order_date', 'DESC')
+            ->findAll(4);
 
-        // Recent orders (latest 4)
-        $recentOrderModel = new \App\Models\OrderModel();
-        $recentOrders = $recentOrderModel->orderBy('order_date', 'DESC')->findAll(4);
         $data['recentOrders'] = [];
         foreach ($recentOrders as $order) {
-            $orderItems = $orderItemModel->where('order_id', $order['id'])->orderBy('id', 'ASC')->findAll(1);
+            $orderItems = (new \App\Models\OrderItemModel())
+                ->where('order_id', $order['id'])
+                ->orderBy('id', 'ASC')
+                ->findAll(1);
+
             $productName = '';
             if (! empty($orderItems)) {
                 $product = $productModel->find($orderItems[0]['product_id']);
                 $productName = $product['name'] ?? '';
             }
+
             $data['recentOrders'][] = [
                 'order_number' => $order['id'],
-                'product'      => $productName,
-                'status'       => $order['status'],
+                'product' => $productName,
+                'status' => $order['status'],
             ];
         }
 
         // Top products by quantity sold
         $topProducts = $orderItemModel
-            ->select('product_id, SUM(quantity) as sold_qty')
+            ->select('product_id, SUM(quantity) AS sold_qty')
             ->groupBy('product_id')
             ->orderBy('sold_qty', 'DESC')
             ->findAll(4);
@@ -66,25 +73,69 @@ class Admin extends BaseController
             if (! $product) {
                 continue;
             }
+
             $data['topProducts'][] = [
-                'name'     => $product['name'],
-                'soldQty'  => (int) $row['sold_qty'],
+                'name' => $product['name'],
+                'soldQty' => (int) $row['sold_qty'],
             ];
         }
 
+        // Sales overview for the last 7 days, reordered Sunday to Saturday
+        $salesRows = (new \App\Models\OrderModel())
+            ->select('DATE(order_date) AS sale_date, SUM(total) AS total_sales', false)
+            ->where('order_date >=', date('Y-m-d 00:00:00', strtotime('-6 days')))
+            ->groupBy('DATE(order_date)')
+            ->orderBy('sale_date', 'ASC')
+            ->findAll();
+
+        $salesMap = [];
+        foreach ($salesRows as $row) {
+            $salesMap[$row['sale_date']] = (float) $row['total_sales'];
+        }
+
+        $orderedDays = [
+            'Sun' => 0,
+            'Mon' => 0,
+            'Tue' => 0,
+            'Wed' => 0,
+            'Thu' => 0,
+            'Fri' => 0,
+            'Sat' => 0,
+        ];
+
+        foreach ($salesMap as $date => $amount) {
+            $label = date('D', strtotime($date));
+            if (array_key_exists($label, $orderedDays)) {
+                $orderedDays[$label] += $amount;
+            }
+        }
+
+        $data['salesOverview'] = [];
+        $maxSales = max($orderedDays);
+
+        foreach ($orderedDays as $label => $amount) {
+            $data['salesOverview'][] = [
+                'label' => $label,
+                'date' => $label,
+                'amount' => $amount,
+                'height' => $maxSales > 0
+                    ? max(12, round(($amount / $maxSales) * 100, 2))
+                    : 12,
+            ];
+        }
         return view('admin_view', $data);
     }
 
     public function products()
     {
-        $data['title'] = "VIZIO Admin Products";
+        $data['title'] = 'VIZIO Admin Products';
 
         return view('adminproducts_view', $data);
     }
 
     public function orders()
     {
-        $data['title'] = "VIZIO Admin Orders";
+        $data['title'] = 'VIZIO Admin Orders';
 
         $search = trim($this->request->getGet('search') ?? '');
         $data['search'] = $search;
@@ -97,22 +148,18 @@ class Admin extends BaseController
             ->join('users', 'users.id = orders.user_id', 'left');
 
         if ($search !== '') {
-            // Allow searching by order id (with or without "ORD-" prefix) or by customer name.
             $orderQuery = $orderQuery->groupStart();
 
-            // Order ID search
             if (preg_match('/^\s*#?ORD-?(\d+)\s*$/i', $search, $m)) {
                 $orderQuery = $orderQuery->where('orders.id', (int) $m[1]);
             } elseif (ctype_digit($search)) {
                 $orderQuery = $orderQuery->where('orders.id', (int) $search);
             }
 
-            // Customer name search (first or last)
             $orderQuery = $orderQuery
                 ->orLike('users.first_name', $search)
-                ->orLike('users.last_name', $search);
-
-            $orderQuery = $orderQuery->groupEnd();
+                ->orLike('users.last_name', $search)
+                ->groupEnd();
         }
 
         $orders = $orderQuery->orderBy('orders.order_date', 'DESC')->findAll(50);
@@ -125,12 +172,11 @@ class Admin extends BaseController
             $itemsData = $orderItemModel->selectSum('quantity', 'itemCount')
                 ->where('order_id', $order['id'])
                 ->first();
-            $itemCount = (int) ($itemsData['itemCount'] ?? 0);
 
             $data['orders'][] = [
                 'id' => $order['id'],
                 'customer' => $customerName,
-                'items' => $itemCount,
+                'items' => (int) ($itemsData['itemCount'] ?? 0),
                 'total' => (float) $order['total'],
                 'status' => $order['status'],
                 'date' => $order['order_date'],
@@ -147,7 +193,6 @@ class Admin extends BaseController
         $orderModel = new \App\Models\OrderModel();
         $orderItemModel = new \App\Models\OrderItemModel();
         $userModel = new \App\Models\UserModel();
-        $productModel = new \App\Models\ProductModel();
 
         $order = $orderModel->find($id);
         if (! $order) {
@@ -193,11 +238,13 @@ class Admin extends BaseController
 
         if ($search !== '') {
             $orderQuery = $orderQuery->groupStart();
+
             if (preg_match('/^\s*#?ORD-?(\d+)\s*$/i', $search, $m)) {
                 $orderQuery = $orderQuery->where('orders.id', (int) $m[1]);
             } elseif (ctype_digit($search)) {
                 $orderQuery = $orderQuery->where('orders.id', (int) $search);
             }
+
             $orderQuery = $orderQuery
                 ->orLike('users.first_name', $search)
                 ->orLike('users.last_name', $search)
@@ -214,12 +261,11 @@ class Admin extends BaseController
             $itemsData = $orderItemModel->selectSum('quantity', 'itemCount')
                 ->where('order_id', $order['id'])
                 ->first();
-            $itemCount = (int) ($itemsData['itemCount'] ?? 0);
 
             $rows[] = [
                 'Order ID' => $order['id'],
                 'Customer' => $customerName,
-                'Items' => $itemCount,
+                'Items' => (int) ($itemsData['itemCount'] ?? 0),
                 'Total' => number_format($order['total'], 2),
                 'Status' => $order['status'],
                 'Date' => $order['order_date'],
@@ -227,23 +273,25 @@ class Admin extends BaseController
         }
 
         if ($format === 'pdf') {
-            // PDF export is not available because dompdf is not installed.
-            // Fallback: export as HTML and set PDF headers for browser print.
-            $html = "<h1>Orders Export</h1>";
+            $html = '<h1>Orders Export</h1>';
             $html .= "<table border='1' cellpadding='5' cellspacing='0'>";
-            $html .= "<tr>";
+            $html .= '<tr>';
+
             foreach (array_keys($rows[0] ?? []) as $col) {
-                $html .= "<th>" . htmlspecialchars($col, ENT_QUOTES, 'UTF-8') . "</th>";
+                $html .= '<th>' . htmlspecialchars($col, ENT_QUOTES, 'UTF-8') . '</th>';
             }
-            $html .= "</tr>";
+
+            $html .= '</tr>';
+
             foreach ($rows as $row) {
-                $html .= "<tr>";
+                $html .= '<tr>';
                 foreach ($row as $cell) {
-                    $html .= "<td>" . htmlspecialchars($cell, ENT_QUOTES, 'UTF-8') . "</td>";
+                    $html .= '<td>' . htmlspecialchars((string) $cell, ENT_QUOTES, 'UTF-8') . '</td>';
                 }
-                $html .= "</tr>";
+                $html .= '</tr>';
             }
-            $html .= "</table>";
+
+            $html .= '</table>';
 
             return $this->response
                 ->setHeader('Content-Type', 'application/pdf')
@@ -251,7 +299,6 @@ class Admin extends BaseController
                 ->setBody($html);
         }
 
-        // Excel/CSV export
         $filename = 'orders_export_' . date('Ymd_His');
         $ext = $format === 'xls' ? 'xls' : 'csv';
         $contentType = $format === 'xls'

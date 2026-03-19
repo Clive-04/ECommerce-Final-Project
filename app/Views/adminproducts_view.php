@@ -58,11 +58,6 @@
                 </div>
 
                 <div class="admin-toolbar-actions">
-                    <button class="admin-outline-btn">
-                        <i class="bi bi-funnel"></i>
-                        Filter
-                    </button>
-
                     <button class="admin-primary-btn" data-bs-toggle="modal" data-bs-target="#addProductModal">
                         <i class="bi bi-plus-lg"></i>
                         Add Product

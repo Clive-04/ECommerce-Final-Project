@@ -157,24 +157,28 @@
 
                     <div class="sales-placeholder">
                         <div class="sales-bars">
-                            <div class="bar" style="height: 48%;"></div>
-                            <div class="bar" style="height: 68%;"></div>
-                            <div class="bar" style="height: 55%;"></div>
-                            <div class="bar" style="height: 82%;"></div>
-                            <div class="bar" style="height: 74%;"></div>
-                            <div class="bar" style="height: 92%;"></div>
-                            <div class="bar" style="height: 64%;"></div>
+                            <?php if (! empty($salesOverview)): ?>
+                                <?php foreach ($salesOverview as $day): ?>
+                                    <div
+                                        class="bar"
+                                        style="height: <?= esc($day['height']) ?>%;"
+                                        title="<?= esc($day['label']) ?> (<?= esc($day['date']) ?>) - ₱<?= number_format($day['amount'], 2) ?>"
+                                    ></div>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <div class="bar" style="height: 12%;"></div>
+                            <?php endif; ?>
                         </div>
+
                         <div class="sales-labels">
-                            <span>Mon</span>
-                            <span>Tue</span>
-                            <span>Wed</span>
-                            <span>Thu</span>
-                            <span>Fri</span>
-                            <span>Sat</span>
-                            <span>Sun</span>
+                            <?php if (! empty($salesOverview)): ?>
+                                <?php foreach ($salesOverview as $day): ?>
+                                    <span><?= esc($day['label']) ?></span>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </div>
                     </div>
+                </div>
                 </div>
             </section>
         </main>

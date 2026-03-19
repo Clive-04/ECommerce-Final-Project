@@ -63,11 +63,6 @@
                 </form>
 
                 <div class="admin-toolbar-actions">
-                    <button class="admin-outline-btn" type="button">
-                        <i class="bi bi-funnel"></i>
-                        Filter
-                    </button>
-
                     <a href="<?= base_url('/admin/orders/export/csv') . '?search=' . urlencode($search ?? '') ?>" class="admin-primary-btn">
                         <i class="bi bi-download"></i>
                         Export CSV
