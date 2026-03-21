@@ -27,19 +27,6 @@
             <?php endforeach ?>
         </div>
 
-        <div class="price-filter" id="priceFilter">
-            <button class="sort-btn" id="priceFilterToggle" type="button">
-                Price
-                <span class="sort-chevron"></span>
-            </button>
-
-            <div class="price-filter-menu" id="priceFilterMenu">
-                <button class="price-option active" type="button">Low to High</button>
-                <button class="price-option" type="button">High to Low</button>
-            </div>
-        </div>
-    </div>
-
     <div class="row g-4">
         <?php if (! empty($products) && is_array($products)): ?>
             <?php foreach ($products as $prod): ?>

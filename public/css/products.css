@@ -172,6 +172,16 @@
   color: #111111;
   margin-bottom: 8px;
   letter-spacing: -0.02em;
+
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  max-height: 4.6em;
+  overflow: hidden;
+}
+
+.catalog-card {
+  min-width: 0;
 }
 
 .price {

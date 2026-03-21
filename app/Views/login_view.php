@@ -45,16 +45,6 @@
                             </button>
                         </div>
                     </div>
-
-                    <div class="modern-options">
-                        <label class="modern-check">
-                            <input type="checkbox" name="remember">
-                            <span>Remember me</span>
-                        </label>
-
-                        <a href="#" class="modern-link">Forgot password?</a>
-                    </div>
-
                     <button type="submit" class="modern-btn">Login</button>
 
                     <p class="modern-switch">
