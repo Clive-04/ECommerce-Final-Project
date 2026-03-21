@@ -39,3 +39,7 @@ $routes->get('/logout', 'Auth::logout');
 $routes->get('/admin', 'Admin::index');
 $routes->get('/admin/products', 'Admin::products');
 $routes->get('/admin/orders', 'Admin::orders');
+
+/* ABOUT */
+
+$routes->get('/about', 'About::index');
