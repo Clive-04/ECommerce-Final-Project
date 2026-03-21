@@ -62,33 +62,44 @@ class Auth extends BaseController
         ->first();
 
 
-        if($user)
+        if ($user)
         {
+            $storedPassword = $user['password'];
 
-            if(password_verify($password,$user['password']))
-            {
+            // Accept both hashed passwords (the normal case) and legacy plaintext values (from older seed data).
+            $passwordMatches = false;
 
-                session()->set([
+            if (password_verify($password, $storedPassword)) {
+                $passwordMatches = true;
+            } else {
+                // If the stored password is not a bcrypt/argon hash, allow plaintext match and upgrade it.
+                $isProbablyHashed = preg_match('/^\$(2y|2a|2b|argon2i|argon2id)\$/', $storedPassword);
+                if (! $isProbablyHashed && trim($storedPassword) === $password) {
+                    $passwordMatches = true;
 
-                    'user_id' => $user['id'],
-                    'user_name' => $user['first_name'],
-                    'role' => $user['role'],
-                    'logged_in' => true
-
-                ]);
-
-
-                if($user['role'] == 'admin')
-                {
-                    return redirect()->to('/admin');
+                    // Upgrade to a hashed password so the account is secure going forward.
+                    $userModel->update($user['id'], [
+                        'password' => password_hash($password, PASSWORD_DEFAULT),
+                    ]);
                 }
-                else
-                {
-                    return redirect()->to('/');
-                }
-
             }
 
+            if ($passwordMatches) {
+                $role = strtolower($user['role'] ?? '');
+
+                session()->set([
+                    'user_id'   => $user['id'],
+                    'user_name' => $user['first_name'],
+                    'role'      => $role,
+                    'logged_in' => true,
+                ]);
+
+                if ($role === 'admin') {
+                    return redirect()->to('/admin');
+                }
+
+                return redirect()->to('/');
+            }
         }
 
         return redirect()->back()

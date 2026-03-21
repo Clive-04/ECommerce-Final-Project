@@ -2,7 +2,6 @@
 
 <section class="admin-page">
     <div class="admin-layout">
-
         <!-- Sidebar -->
         <aside class="admin-sidebar">
             <div class="admin-sidebar-top">
@@ -34,36 +33,34 @@
             </div>
         </aside>
 
-        <!-- Main -->
+        <!-- Main Content -->
         <main class="admin-main">
-
             <div class="admin-topbar">
                 <div>
                     <p class="admin-kicker">Overview</p>
                     <h1>Dashboard</h1>
                 </div>
 
+                <?php $adminName = $adminName ?? 'Admin'; ?>
                 <div class="admin-user">
                     <div class="admin-user-text">
                         <span class="admin-user-label">User</span>
-                        <strong><?= session()->get('user_name') ?? 'Admin' ?></strong>
+                        <strong><?= esc($adminName) ?></strong>
                     </div>
-                    <div class="admin-user-avatar">
-                        <?= strtoupper(substr(session()->get('user_name') ?? 'A',0,1)) ?>
-                    </div>
+                    <div class="admin-user-avatar"><?= esc(strtoupper(substr($adminName, 0, 1))) ?></div>
                 </div>
             </div>
 
             <!-- Stats -->
             <section class="admin-stats">
-
                 <div class="stat-card">
                     <div class="stat-icon revenue">
                         <i class="bi bi-cash-stack"></i>
                     </div>
                     <div>
                         <p class="stat-label">Total Revenue</p>
-                        <h3>₱<?= number_format($revenue ?? 0) ?></h3>
+                        <h3>₱<?= number_format($totalRevenue ?? 0, 2) ?></h3>
+                        <span class="stat-sub">Since launch</span>
                     </div>
                 </div>
 
@@ -73,7 +70,8 @@
                     </div>
                     <div>
                         <p class="stat-label">Total Orders</p>
-                        <h3><?= $orders_count ?></h3>
+                        <h3><?= esc($totalOrders ?? 0) ?></h3>
+                        <span class="stat-sub"><?= esc($pendingOrders ?? 0) ?> pending orders</span>
                     </div>
                 </div>
 
@@ -83,16 +81,14 @@
                     </div>
                     <div>
                         <p class="stat-label">Total Products</p>
-                        <h3><?= $products_count ?></h3>
+                        <h3><?= esc($totalProducts ?? 0) ?></h3>
+                        <span class="stat-sub"><?= esc($lowStockCount ?? 0) ?> low stock items</span>
                     </div>
                 </div>
-
             </section>
 
-            <!-- Mid -->
+            <!-- Mid Content -->
             <section class="admin-grid-two">
-
-                <!-- Recent Orders -->
                 <div class="admin-panel-card tall-card">
                     <div class="panel-header">
                         <h3>Recent Orders</h3>
@@ -100,26 +96,27 @@
                     </div>
 
                     <div class="order-list">
-
-                        <?php foreach($recent_orders as $order): ?>
-
-                        <div class="order-item">
-                            <div>
-                                <strong>#<?= esc($order['order_number']) ?></strong>
-                                <p><?= esc($order['customer_name']) ?></p>
+                        <?php if (! empty($recentOrders) && is_array($recentOrders)): ?>
+                            <?php foreach ($recentOrders as $order): ?>
+                                <?php $statusClass = strtolower(str_replace(' ', '-', $order['status'] ?? '')); ?>
+                                <div class="order-item">
+                                    <div>
+                                        <strong>#ORD-<?= esc($order['order_number']) ?></strong>
+                                        <p><?= esc($order['product'] ?: '—') ?></p>
+                                    </div>
+                                    <span class="status-pill <?= esc($statusClass) ?>"><?= esc($order['status']) ?></span>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div class="order-item">
+                                <div>
+                                    <p>No recent orders found.</p>
+                                </div>
                             </div>
-
-                            <span class="status-pill">
-                                <?= esc($order['status']) ?>
-                            </span>
-                        </div>
-
-                        <?php endforeach; ?>
-
+                        <?php endif; ?>
                     </div>
                 </div>
 
-                <!-- Top Products -->
                 <div class="admin-panel-card tall-card">
                     <div class="panel-header">
                         <h3>Top Products</h3>
@@ -127,27 +124,63 @@
                     </div>
 
                     <div class="product-rank-list">
-
-                        <?php $rank=1; foreach($products as $product): ?>
-
-                        <div class="rank-item">
-                            <span class="rank-number">
-                                <?= str_pad($rank,2,'0',STR_PAD_LEFT) ?>
-                            </span>
-
-                            <div>
-                                <strong><?= esc($product['name']) ?></strong>
-                                <p>Stock: <?= $product['stock'] ?></p>
+                        <?php if (! empty($topProducts) && is_array($topProducts)): ?>
+                            <?php foreach ($topProducts as $index => $product): ?>
+                                <div class="rank-item">
+                                    <span class="rank-number"><?= esc(str_pad($index + 1, 2, '0', STR_PAD_LEFT)) ?></span>
+                                    <div>
+                                        <strong><?= esc($product['name']) ?></strong>
+                                        <p><?= esc($product['soldQty']) ?> units sold</p>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div class="rank-item">
+                                <span class="rank-number">01</span>
+                                <div>
+                                    <strong>No products sold yet</strong>
+                                    <p>—</p>
+                                </div>
                             </div>
-                        </div>
-
-                        <?php $rank++; endforeach; ?>
-
+                        <?php endif; ?>
                     </div>
                 </div>
-
             </section>
 
+            <!-- Bottom Content -->
+            <section class="admin-grid-bottom">
+                <div class="admin-panel-card sales-card">
+                    <div class="panel-header">
+                        <h3>Sales Overview</h3>
+                        <a href="#">Details</a>
+                    </div>
+
+                    <div class="sales-placeholder">
+                        <div class="sales-bars">
+                            <?php if (! empty($salesOverview)): ?>
+                                <?php foreach ($salesOverview as $day): ?>
+                                    <div
+                                        class="bar"
+                                        style="height: <?= esc($day['height']) ?>%;"
+                                        title="<?= esc($day['label']) ?> (<?= esc($day['date']) ?>) - ₱<?= number_format($day['amount'], 2) ?>"
+                                    ></div>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <div class="bar" style="height: 12%;"></div>
+                            <?php endif; ?>
+                        </div>
+
+                        <div class="sales-labels">
+                            <?php if (! empty($salesOverview)): ?>
+                                <?php foreach ($salesOverview as $day): ?>
+                                    <span><?= esc($day['label']) ?></span>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </section>
         </main>
     </div>
 </section>

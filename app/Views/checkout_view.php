@@ -126,36 +126,28 @@
 
             <aside class="checkout-summary-card">
                 <h2>Order Summary</h2>
-
-                <?php $cart = session()->get('cart') ?? []; ?>
-
-                <?php if (! empty($cart) && is_array($cart)): ?>
-                    <?php $subtotal = 0; ?>
+                <?php if (!empty($orderSummary)): ?>
                     <div class="summary-products">
-                        <?php foreach ($cart as $item): ?>
-                            <?php $subtotal += $item['total']; ?>
+                        <?php foreach ($orderSummary as $item): ?>
                             <div class="summary-product-line">
                                 <span><?= esc($item['name']) ?> x<?= esc($item['quantity']) ?></span>
                                 <span>₱<?= number_format($item['total'], 2) ?></span>
                             </div>
                         <?php endforeach; ?>
                     </div>
-
                     <div class="summary-totals">
                         <div class="summary-line">
                             <span>Subtotal</span>
-                            <span>₱<?= number_format($subtotal, 2) ?></span>
+                            <span>₱<?= number_format($orderTotal, 2) ?></span>
                         </div>
-
                         <div class="summary-line">
                             <span>Shipping</span>
                             <span>TBD</span>
                         </div>
                     </div>
-
                     <div class="summary-grand-total">
                         <span>Total</span>
-                        <span>₱<?= number_format($subtotal, 2) ?></span>
+                        <span>₱<?= number_format($orderTotal, 2) ?></span>
                     </div>
                 <?php else: ?>
                     <p>Your cart is empty. <a href="<?= base_url('products') ?>">Browse products</a> to add items.</p>
