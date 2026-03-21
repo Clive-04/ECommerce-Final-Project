@@ -37,14 +37,6 @@
             </ul>
 
             <div class="nav-side nav-right">
-                <div class="search-wrap">
-                    <button type="button" class="search-btn">
-                        <i class="bi bi-search"></i>
-                    </button>
-                    <input class="form-control search-bar" type="text" placeholder="Search">
-                </div>
-
-
                 <?php if(session()->get('logged_in')): ?>
 
                     <span class="user-name" style="color: #fff;">
