@@ -44,14 +44,19 @@
                     <input class="form-control search-bar" type="text" placeholder="Search">
                 </div>
 
+<<<<<<< HEAD
+                <?php if (session()->get('logged_in')): ?>
+                    <span class="user-name">
+=======
 
                 <?php if(session()->get('logged_in')): ?>
 
                     <span class="user-name" style="color: #fff;">
+>>>>>>> 5c85549d85a554f62712c5a53438f80f9ee32c58
                         Hello, <?= session()->get('user_name') ?>
                     </span>
 
-                    <a href="<?= base_url('/logout') ?>" class="login-btn logout-btn">
+                    <a href="<?= base_url('/logout') ?>" class="login-btn">
                         Logout
                     </a>
                 <?php else: ?>

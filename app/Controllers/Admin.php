@@ -3,48 +3,65 @@
 namespace App\Controllers;
 
 use App\Models\ProductModel;
+<<<<<<< HEAD
+use App\Models\OrderModel;
+=======
+>>>>>>> 5c85549d85a554f62712c5a53438f80f9ee32c58
 
 class Admin extends BaseController
 {
+
     public function __construct()
     {
+<<<<<<< HEAD
+        if(!session()->get('logged_in') || session()->get('role') != 'admin')
+        {
+            header("Location: /login");
+=======
         $role = strtolower(session()->get('role') ?? '');
         if (!session()->get('logged_in') || $role !== 'admin') {
             header('Location: /login');
+>>>>>>> 5c85549d85a554f62712c5a53438f80f9ee32c58
             exit;
         }
     }
 
+<<<<<<< HEAD
+
+=======
+>>>>>>> 5c85549d85a554f62712c5a53438f80f9ee32c58
     // =============================
     // DASHBOARD
     // =============================
     public function index()
     {
-        $data['title'] = 'VIZIO Admin';
-        $data['adminName'] = session()->get('user_name') ?? 'Admin';
+        $productModel = new ProductModel();
+        $orderModel   = new OrderModel();
 
-        $orderModel = new \App\Models\OrderModel();
-        $productModel = new \App\Models\ProductModel();
-        $orderItemModel = new \App\Models\OrderItemModel();
+        $data['title'] = "VIZIO Admin";
 
-        // Dashboard stats
-        $totalRevenueRow = $orderModel->selectSum('total')->first();
-        $data['totalRevenue'] = (float) ($totalRevenueRow['total'] ?? 0);
+        $data['products_count'] = $productModel->countAll();
+        $data['orders_count'] = $orderModel->countAll();
 
-        $data['totalOrders'] = (new \App\Models\OrderModel())->countAllResults();
-        $data['pendingOrders'] = (new \App\Models\OrderModel())
-            ->where('status', 'Pending')
-            ->countAllResults();
-        $data['totalProducts'] = $productModel->countAllResults();
-        $data['lowStockCount'] = (new \App\Models\ProductModel())
-            ->where('stock <', 10)
-            ->countAllResults();
+        $revenue = $orderModel->selectSum('total')->first();
+        $data['revenue'] = $revenue['total'] ?? 0;
 
-        // Recent orders
-        $recentOrders = (new \App\Models\OrderModel())
-            ->orderBy('order_date', 'DESC')
+        $data['recent_orders'] = $orderModel
+            ->orderBy('order_date','DESC')
+            ->findAll(5);
+
+        $data['products'] = $productModel
+            ->orderBy('created_at','DESC')
             ->findAll(4);
 
+<<<<<<< HEAD
+        return view('admin_view', $data);
+    }
+
+
+    // =============================
+    // PRODUCTS PAGE
+=======
         $data['recentOrders'] = [];
         foreach ($recentOrders as $order) {
             $orderItems = (new \App\Models\OrderItemModel())
@@ -127,17 +144,33 @@ class Admin extends BaseController
 
     // =============================
     // PRODUCTS PAGE (MERGED)
+>>>>>>> 5c85549d85a554f62712c5a53438f80f9ee32c58
     // =============================
     public function products()
     {
         $model = new ProductModel();
 
+<<<<<<< HEAD
+        $data['title'] = "VIZIO Admin Products";
+
+        $data['products'] = $model
+            ->orderBy('created_at','DESC')
+            ->findAll();
+=======
         $data['title'] = 'VIZIO Admin Products';
         $data['products'] = $model->orderBy('created_at', 'DESC')->findAll();
+>>>>>>> 5c85549d85a554f62712c5a53438f80f9ee32c58
 
         return view('adminproducts_view', $data);
     }
 
+<<<<<<< HEAD
+
+    // =============================
+    // ADD PRODUCT (WITH IMAGE)
+    // =============================
+    public function storeProduct()
+=======
     // =============================
     // ADD PRODUCT
     // =============================
@@ -222,45 +255,104 @@ class Admin extends BaseController
     // ORDERS
     // =============================
     public function orders()
+>>>>>>> 5c85549d85a554f62712c5a53438f80f9ee32c58
     {
-        $data['title'] = 'VIZIO Admin Orders';
+        $model = new ProductModel();
 
-        $search = trim($this->request->getGet('search') ?? '');
-        $data['search'] = $search;
+        $image = $this->request->getFile('image');
+        $imagePath = null;
 
-        $orderModel = new \App\Models\OrderModel();
-        $orderItemModel = new \App\Models\OrderItemModel();
-        $userModel = new \App\Models\UserModel();
+        if ($image && $image->isValid() && !$image->hasMoved())
+        {
+            $newName = $image->getRandomName();
 
-        $orderQuery = $orderModel->select('orders.*')
-            ->join('users', 'users.id = orders.user_id', 'left');
+            // Save to /public/img/
+            $image->move(FCPATH . 'img/', $newName);
 
-        if ($search !== '') {
-            $orderQuery = $orderQuery->groupStart();
+            $imagePath = 'img/' . $newName;
+        }
 
+<<<<<<< HEAD
+        $model->save([
+            'name'        => $this->request->getPost('name'),
+            'sku'         => $this->request->getPost('sku'),
+            'brand'       => $this->request->getPost('brand'),
+            'category'    => $this->request->getPost('category'),
+            'price'       => $this->request->getPost('price'),
+            'stock'       => $this->request->getPost('stock'),
+            'status'      => $this->request->getPost('status'),
+            'description' => $this->request->getPost('description'),
+            'image'       => $imagePath
+        ]);
+
+        return redirect()->to('/admin/products');
+    }
+
+
+    // =============================
+    // UPDATE PRODUCT (FIXED + IMAGE)
+    // =============================
+    public function updateProduct($id)
+    {
+        $model = new ProductModel();
+
+        $product = $model->find($id);
+
+        $image = $this->request->getFile('image');
+        $imagePath = $product['image'];
+
+        // If new image uploaded
+        if ($image && $image->isValid() && !$image->hasMoved())
+        {
+            // Delete old image
+            if ($product['image'] && file_exists(FCPATH . $product['image']))
+            {
+                unlink(FCPATH . $product['image']);
+=======
             if (preg_match('/^\s*#?ORD-?(\d+)\s*$/i', $search, $m)) {
                 $orderQuery = $orderQuery->where('orders.id', (int)$m[1]);
             } elseif (ctype_digit($search)) {
                 $orderQuery = $orderQuery->where('orders.id', (int)$search);
+>>>>>>> 5c85549d85a554f62712c5a53438f80f9ee32c58
             }
 
-            $orderQuery = $orderQuery
-                ->orLike('users.first_name', $search)
-                ->orLike('users.last_name', $search)
-                ->groupEnd();
+            $newName = $image->getRandomName();
+            $image->move(FCPATH . 'img/', $newName);
+
+            $imagePath = 'img/' . $newName;
         }
 
-        $orders = $orderQuery->orderBy('orders.order_date', 'DESC')->findAll(50);
+        $model->update($id, [
+            'name'        => $this->request->getPost('name'),
+            'sku'         => $this->request->getPost('sku'),
+            'brand'       => $this->request->getPost('brand'),
+            'category'    => $this->request->getPost('category'),
+            'price'       => $this->request->getPost('price'),
+            'stock'       => $this->request->getPost('stock'),
+            'status'      => $this->request->getPost('status'),
+            'description' => $this->request->getPost('description'),
+            'image'       => $imagePath
+        ]);
 
-        $data['orders'] = [];
-        foreach ($orders as $order) {
-            $user = $userModel->find($order['user_id']);
-            $customerName = $user ? trim($user['first_name'] . ' ' . $user['last_name']) : 'Unknown';
+        return redirect()->to('/admin/products');
+    }
 
-            $itemsData = $orderItemModel->selectSum('quantity', 'itemCount')
-                ->where('order_id', $order['id'])
-                ->first();
 
+<<<<<<< HEAD
+    // =============================
+    // DELETE PRODUCT (WITH IMAGE DELETE)
+    // =============================
+    public function deleteProduct($id)
+    {
+        $model = new ProductModel();
+
+        $product = $model->find($id);
+
+        // Delete image file
+        if ($product['image'] && file_exists(FCPATH . $product['image']))
+        {
+            unlink(FCPATH . $product['image']);
+=======
             $data['orders'][] = [
                 'id' => $order['id'],
                 'customer' => $customerName,
@@ -269,13 +361,34 @@ class Admin extends BaseController
                 'status' => $order['status'],
                 'date' => $order['order_date'],
             ];
+>>>>>>> 5c85549d85a554f62712c5a53438f80f9ee32c58
         }
 
-        $data['orderCount'] = count($data['orders']);
+        $model->delete($id);
+
+        return redirect()->to('/admin/products');
+    }
+
+
+    // =============================
+    // ORDERS PAGE
+    // =============================
+    public function orders()
+    {
+        $orderModel = new OrderModel();
+
+        $data['title'] = "VIZIO Admin Orders";
+
+        $data['orders'] = $orderModel
+            ->orderBy('order_date','DESC')
+            ->findAll();
 
         return view('adminorders_view', $data);
     }
 
+<<<<<<< HEAD
+}
+=======
     // =============================
     // VIEW ORDER
     // =============================
@@ -318,3 +431,4 @@ class Admin extends BaseController
         // you can keep this part exactly as is from your original code
     }
 }
+>>>>>>> 5c85549d85a554f62712c5a53438f80f9ee32c58

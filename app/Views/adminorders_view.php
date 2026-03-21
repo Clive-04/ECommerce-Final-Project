@@ -52,21 +52,21 @@
 
             <!-- Toolbar -->
             <section class="admin-products-toolbar">
-                <form method="get" action="<?= base_url('/admin/orders') ?>" class="admin-search-box">
+                <div class="admin-search-box">
                     <i class="bi bi-search"></i>
-                    <input
-                        type="text"
-                        name="search"
-                        placeholder="Search order ID or customer"
-                        value="<?= esc($search ?? '') ?>"
-                    />
-                </form>
+                    <input type="text" placeholder="Search order ID, customer, or status">
+                </div>
 
                 <div class="admin-toolbar-actions">
-                    <a href="<?= base_url('/admin/orders/export/csv') . '?search=' . urlencode($search ?? '') ?>" class="admin-primary-btn">
+                    <button class="admin-outline-btn">
+                        <i class="bi bi-funnel"></i>
+                        Filter
+                    </button>
+
+                    <button class="admin-primary-btn">
                         <i class="bi bi-download"></i>
-                        Export CSV
-                    </a>
+                        Export
+                    </button>
                 </div>
             </section>
 
@@ -78,7 +78,7 @@
                         <p class="panel-subtext">Track and manage customer purchases.</p>
                     </div>
 
-                    <span class="table-count-badge"><?= esc($orderCount ?? 0) ?> Orders</span>
+                    <span class="table-count-badge">324 Orders</span>
                 </div>
 
                 <div class="products-table-wrapper">
@@ -95,34 +95,52 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <?php if (! empty($orders) && is_array($orders)): ?>
-                                <?php foreach ($orders as $order): ?>
-                                    <?php $statusClass = strtolower(str_replace(' ', '-', $order['status'] ?? '')); ?>
-                                    <tr>
-                                        <td><strong>#ORD-<?= esc($order['id']) ?></strong></td>
-                                        <td><?= esc($order['customer']) ?></td>
-                                        <td><?= esc($order['items']) ?> Item<?= (int) $order['items'] === 1 ? '' : 's' ?></td>
-                                        <td>₱<?= number_format($order['total'], 2) ?></td>
-                                        <td><span class="table-status <?= esc($statusClass) ?>"><?= esc($order['status']) ?></span></td>
-                                        <td><?= esc(date('M d, Y', strtotime($order['date']))) ?></td>
-                                        <td class="table-actions">
-                                            <a href="<?= base_url('/admin/orders/view/' . $order['id']) ?>" class="table-icon-btn" title="View order">
-                                                <i class="bi bi-eye"></i>
-                                            </a>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                <tr>
-                                    <td colspan="7" class="text-center">No orders found.</td>
-                                </tr>
-                            <?php endif; ?>
-                        </tbody>
+
+<?php foreach($orders as $order): ?>
+
+<tr>
+
+<td><strong>#<?= esc($order['order_number']) ?></strong></td>
+
+<td><?= esc($order['customer_name']) ?></td>
+
+<td>1 Item</td>
+
+<td>₱<?= number_format($order['total'],2) ?></td>
+
+<td>
+<span class="table-status">
+<?= esc($order['status']) ?>
+</span>
+</td>
+
+<td>
+<?= date('M d, Y', strtotime($order['order_date'])) ?>
+</td>
+
+<td class="table-actions">
+<button class="table-icon-btn"><i class="bi bi-eye"></i></button>
+<button class="table-icon-btn"><i class="bi bi-pencil"></i></button>
+</td>
+
+</tr>
+
+<?php endforeach; ?>
+
+</tbody>
                     </table>
                 </div>
 
                 <div class="table-footer">
-                    <p><?= esc($orderCount ?? 0) ?> orders shown</p>
+                    <p>Showing 1–5 of 324 orders</p>
+
+                    <div class="pagination-wrap">
+                        <button class="pagination-btn">Previous</button>
+                        <button class="pagination-btn active">1</button>
+                        <button class="pagination-btn">2</button>
+                        <button class="pagination-btn">3</button>
+                        <button class="pagination-btn">Next</button>
+                    </div>
                 </div>
             </section>
         </main>

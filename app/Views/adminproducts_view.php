@@ -54,7 +54,13 @@
 
             <!-- Toolbar -->
             <section class="admin-products-toolbar">
+<<<<<<< HEAD
+                <div class="admin-search-box">
+                    <i class="bi bi-search"></i>
+                    <input type="text" placeholder="Search products">
+=======
                 <div>
+>>>>>>> 5c85549d85a554f62712c5a53438f80f9ee32c58
                 </div>
 
                 <button class="admin-primary-btn" data-bs-toggle="modal" data-bs-target="#addProductModal">
