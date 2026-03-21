@@ -276,9 +276,6 @@ class Admin extends BaseController
         return view('adminorders_view', $data);
     }
 
-    // =============================
-    // VIEW ORDER
-    // =============================
     public function viewOrder($id)
     {
         $orderModel = new \App\Models\OrderModel();
@@ -292,6 +289,7 @@ class Admin extends BaseController
 
         $user = $userModel->find($order['user_id']);
         $customerName = $user ? trim($user['first_name'] . ' ' . $user['last_name']) : 'Unknown';
+        $customerEmail = $user ? $user['email'] : '';
 
         $items = $orderItemModel
             ->select('order_items.*, products.name as product_name')
@@ -304,6 +302,7 @@ class Admin extends BaseController
             'adminName' => session()->get('user_name') ?? 'Admin',
             'order' => $order,
             'customerName' => $customerName,
+            'customerEmail' => $customerEmail,
             'items' => $items,
             'itemCount' => count($items),
         ]);

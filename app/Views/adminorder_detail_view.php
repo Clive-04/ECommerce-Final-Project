@@ -68,33 +68,29 @@
                     <h4>Order Summary</h4>
 
                     <div class="order-summary-grid">
-                        <div class="summary-column">
-                            <div class="summary-item">
-                                <span class="summary-label">Order: </span>
-                                <span class="summary-value">#ORD-<?= esc($order['id'] ?? '') ?></span>
-                            </div>
-
-                            <div class="summary-item">
-                                <span class="summary-label">Date: </span>
-                                <span class="summary-value"><?= esc(date('M d, Y H:i', strtotime($order['order_date'] ?? ''))); ?></span>
-                            </div>
-
-                            <div class="summary-item">
-                                <span class="summary-label">Customer:</span>
-                                <span class="summary-value"><?= esc($customerName ?? '') ?></span>
-                            </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Order ID: </span>
+                            <span class="summary-value">#ORD-<?= esc($order['id'] ?? '') ?></span>
                         </div>
 
-                        <div class="summary-column">
-                            <div class="summary-item">
-                                <span class="summary-label">Items</span>
-                                <span class="summary-value"><?= esc($itemCount ?? 0) ?> item<?= (int) ($itemCount ?? 0) === 1 ? '' : 's' ?></span>
-                            </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Date: </span>
+                            <span class="summary-value"><?= esc(date('M d, Y H:i', strtotime($order['order_date'] ?? ''))); ?></span>
+                        </div>
 
-                            <div class="summary-item">
-                                <span class="summary-label">Email</span>
-                                <span class="summary-value"><?= esc($customerEmail ?? '') ?></span>
-                            </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Customer: </span>
+                            <span class="summary-value"><?= esc($customerName ?? '') ?></span>
+                        </div>
+
+                        <div class="summary-item">
+                            <span class="summary-label">Email: </span>
+                            <span class="summary-value"><?= esc($customerEmail ?? '') ?></span>
+                        </div>
+
+                        <div class="summary-item">
+                            <span class="summary-label">Items: </span>
+                            <span class="summary-value"><?= esc($itemCount ?? 0) ?> item<?= (int) ($itemCount ?? 0) === 1 ? '' : 's' ?></span>
                         </div>
                     </div>
                 </div>

@@ -39,17 +39,12 @@ $routes->get('/logout', 'Auth::logout');
 $routes->get('/admin', 'Admin::index');
 $routes->get('/admin/products', 'Admin::products');
 $routes->get('/admin/orders', 'Admin::orders');
-/* ADMIN */
-$routes->get('/admin', 'Admin::index');
-
-$routes->get('/admin/products', 'Admin::products');
+$routes->get('/admin/orders/view/(:num)', 'Admin::viewOrder/$1');
 
 /* PRODUCT CRUD */
 $routes->post('/admin/products/store', 'Admin::storeProduct');
 $routes->post('/admin/products/update/(:num)', 'Admin::updateProduct/$1');
 $routes->get('/admin/products/delete/(:num)', 'Admin::deleteProduct/$1');
-
-$routes->get('/admin/orders', 'Admin::orders');
 
 /* ABOUT */
 
