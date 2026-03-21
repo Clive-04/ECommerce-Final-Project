@@ -45,10 +45,10 @@
 
                 <div class="admin-user">
                     <div class="admin-user-text">
-                        <span class="admin-user-label">User</span>
-                        <strong>Admin Account</strong>
+                        <span class="admin-user-label">Admin</span>
+                        <strong><?= esc($adminName ?? 'Admin') ?></strong>
                     </div>
-                    <div class="admin-user-avatar">A</div>
+                    <div class="admin-user-avatar"><?= esc(strtoupper(substr($adminName ?? 'A', 0, 1))) ?></div>
                 </div>
             </div>
 

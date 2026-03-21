@@ -16,26 +16,41 @@ class Admin extends BaseController
     }
 
     // =============================
-    // DASHBOARD
-    // =============================
-    public function index()
-    {
-        $data['title'] = 'VIZIO Admin';
-        $data['adminName'] = session()->get('user_name') ?? 'Admin';
+        // PRIVATE METHOD: GET ADMIN NAME FROM DATABASE
+        // =============================
+        private function getAdminName()
+        {
+            $userModel = new \App\Models\UserModel();
+            $user = $userModel->find(session()->get('user_id'));
+            
+            if ($user) {
+                return trim($user['first_name'] . ' ' . $user['last_name']);
+            }
+            
+            return 'Admin';
+        }
 
-        $orderModel = new \App\Models\OrderModel();
-        $productModel = new \App\Models\ProductModel();
-        $orderItemModel = new \App\Models\OrderItemModel();
+        // =============================
+        // DASHBOARD
+        // =============================
+        public function index()
+        {
+            $data['title'] = 'VIZIO Admin';
+            $data['adminName'] = $this->getAdminName();
 
-        // Dashboard stats
-        $totalRevenueRow = $orderModel->selectSum('total')->first();
-        $data['totalRevenue'] = (float) ($totalRevenueRow['total'] ?? 0);
+            $orderModel = new \App\Models\OrderModel();
+            $productModel = new \App\Models\ProductModel();
+            $orderItemModel = new \App\Models\OrderItemModel();
 
-        $data['totalOrders'] = (new \App\Models\OrderModel())->countAllResults();
-        $data['pendingOrders'] = (new \App\Models\OrderModel())
-            ->where('status', 'Pending')
-            ->countAllResults();
-        $data['totalProducts'] = $productModel->countAllResults();
+            // Dashboard stats
+            $totalRevenueRow = $orderModel->selectSum('total')->first();
+            $data['totalRevenue'] = (float) ($totalRevenueRow['total'] ?? 0);
+
+            $data['totalOrders'] = (new \App\Models\OrderModel())->countAllResults();
+            $data['pendingOrders'] = (new \App\Models\OrderModel())
+                ->where('status', 'Pending')
+                ->countAllResults();
+            $data['totalProducts'] = $productModel->countAllResults();
         $data['lowStockCount'] = (new \App\Models\ProductModel())
             ->where('stock <', 10)
             ->countAllResults();
@@ -133,6 +148,7 @@ class Admin extends BaseController
         $model = new ProductModel();
 
         $data['title'] = 'VIZIO Admin Products';
+        $data['adminName'] = $this->getAdminName();
         $data['products'] = $model->orderBy('created_at', 'DESC')->findAll();
 
         return view('adminproducts_view', $data);
@@ -272,6 +288,7 @@ class Admin extends BaseController
         }
 
         $data['orderCount'] = count($data['orders']);
+        $data['adminName'] = $this->getAdminName();
 
         return view('adminorders_view', $data);
     }
@@ -299,7 +316,7 @@ class Admin extends BaseController
 
         return view('adminorder_detail_view', [
             'title' => "Order #{$order['id']}",
-            'adminName' => session()->get('user_name') ?? 'Admin',
+            'adminName' => $this->getAdminName(),
             'order' => $order,
             'customerName' => $customerName,
             'customerEmail' => $customerEmail,

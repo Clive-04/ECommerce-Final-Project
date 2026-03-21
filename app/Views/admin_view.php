@@ -44,7 +44,7 @@
                 <?php $adminName = $adminName ?? 'Admin'; ?>
                 <div class="admin-user">
                     <div class="admin-user-text">
-                        <span class="admin-user-label">User</span>
+                        <span class="admin-user-label">Admin</span>
                         <strong><?= esc($adminName) ?></strong>
                     </div>
                     <div class="admin-user-avatar"><?= esc(strtoupper(substr($adminName, 0, 1))) ?></div>
