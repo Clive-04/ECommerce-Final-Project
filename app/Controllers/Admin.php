@@ -328,9 +328,82 @@ class Admin extends BaseController
     // =============================
     // EXPORT ORDERS
     // =============================
-    public function exportOrders($format = 'csv')
+    // =============================
+// EXPORT ORDERS CSV
+// =============================
+    public function exportOrders()
     {
-        // (unchanged — kept your full logic)
-        // you can keep this part exactly as is from your original code
+        $search = trim($this->request->getGet('search') ?? '');
+
+        $orderModel     = new \App\Models\OrderModel();
+        $orderItemModel = new \App\Models\OrderItemModel();
+        $userModel      = new \App\Models\UserModel();
+
+        $orderQuery = $orderModel->select('orders.*')
+            ->join('users', 'users.id = orders.user_id', 'left');
+
+        if ($search !== '') {
+            $orderQuery = $orderQuery->groupStart();
+
+            if (preg_match('/^\s*#?ORD-?(\d+)\s*$/i', $search, $m)) {
+                $orderQuery = $orderQuery->where('orders.id', (int)$m[1]);
+            } elseif (ctype_digit($search)) {
+                $orderQuery = $orderQuery->where('orders.id', (int)$search);
+            }
+
+            $orderQuery = $orderQuery
+                ->orLike('users.first_name', $search)
+                ->orLike('users.last_name', $search)
+                ->groupEnd();
+        }
+
+        $orders = $orderQuery->orderBy('orders.order_date', 'DESC')->findAll(50);
+
+        // Build rows
+        $rows = [];
+        foreach ($orders as $order) {
+            $user         = $userModel->find($order['user_id']);
+            $customerName = $user ? trim($user['first_name'] . ' ' . $user['last_name']) : 'Unknown';
+
+            $itemsData = $orderItemModel->selectSum('quantity', 'itemCount')
+                ->where('order_id', $order['id'])
+                ->first();
+
+            $rows[] = [
+                'id'       => $order['id'],
+                'customer' => $customerName,
+                'items'    => (int)($itemsData['itemCount'] ?? 0),
+                'total'    => (float)$order['total'],
+                'status'   => $order['status'],
+                'date'     => $order['order_date'],
+            ];
+        }
+
+        // Stream CSV
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="orders_' . date('Y-m-d') . '.csv"');
+        header('Pragma: no-cache');
+        header('Expires: 0');
+
+        $output = fopen('php://output', 'w');
+
+        // BOM for Excel UTF-8 compatibility
+        fputs($output, "\xEF\xBB\xBF");
+
+        fputcsv($output, ['Order ID', 'Customer', 'Items', 'Total (₱)', 'Status', 'Date']);
+
+        foreach ($rows as $row) {
+            fputcsv($output, [
+                '#ORD-' . $row['id'],
+                $row['customer'],
+                $row['items'] . ' Item' . ($row['items'] === 1 ? '' : 's'),
+                number_format($row['total'], 2),
+                $row['status'],
+                date('M d, Y', strtotime($row['date'])),
+            ]);
+        }
+
+        fclose($output);
+        exit;
     }
 }
