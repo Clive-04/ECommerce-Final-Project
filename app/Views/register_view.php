@@ -55,14 +55,6 @@
                             </button>
                         </div>
                     </div>
-
-                    <div class="modern-options">
-                        <label class="modern-check">
-                            <input type="checkbox" name="terms">
-                            <span>I agree to the Terms and Conditions</span>
-                        </label>
-                    </div>
-
                     <button type="submit" class="modern-btn">Create Account</button>
 
                     <p class="modern-switch">
