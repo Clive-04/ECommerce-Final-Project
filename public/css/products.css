@@ -271,3 +271,25 @@
     height: 220px;
   }
 }
+
+.filter-btn {
+  text-decoration: none;
+  display: inline-block;
+}
+
+.catalog-filters {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  width: 100%;
+}
+
+.col-lg-4,
+.col-md-6 {
+  display: flex;
+}
+
+.catalog-card {
+  width: 100%;
+}

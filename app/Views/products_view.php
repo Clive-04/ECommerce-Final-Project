@@ -26,6 +26,7 @@
                 <a href="<?= base_url('/products' . ($value !== '' ? '?category=' . urlencode($value) : '')) ?>" class="filter-btn <?= $selectedCategory === $normalized ? 'active' : '' ?>"><?= esc($label) ?></a>
             <?php endforeach ?>
         </div>
+    </div>
 
     <div class="row g-4">
         <?php if (! empty($products) && is_array($products)): ?>

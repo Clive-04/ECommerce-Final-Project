@@ -422,7 +422,7 @@
     content: "Price: ";
     color: #6b7280;
     font-weight: 600;
-  }
+  }s
 
   .cart-total::before {
     content: "Total: ";
@@ -433,4 +433,17 @@
   .summary-total {
     font-size: 1.3rem;
   }
+}
+
+/* Empty cart link */
+.cart-items-panel p a {
+  color: #3b4af5;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.cart-items-panel p a:hover {
+  color: #1f2fd1;
+  text-decoration: none;
 }
